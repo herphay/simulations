@@ -58,4 +58,19 @@ def interpolate_tfr(
 
     return final_asfr
 
+
+def process_lifetable(
+        path: str = r'data/lifetables.csv',
+        year: int = 2019,
+    ) -> pd.DataFrame:
+    lifetable = pd.read_csv(path)
+    lifetable = lifetable.loc[(lifetable['year'] == year) & (lifetable['sex'] != 'Total'), 
+                              ['sex', 'age_x', 'lx', 'dx']]
+    lifetable['age_x'] = lifetable['age_x'].str.replace('100_and_over', '100').astype(np.int64)
+
+    lifetable['qx'] = lifetable['dx'] / lifetable['lx']
+
+    return lifetable.reset_index(drop=True)
+
+
 main()
