@@ -41,12 +41,21 @@ def interpolate_tfr(
                                           asfr_df.loc[TFR.std_ages, 'asfr'], # corresponding asfr
                                           asfr_df.index) # interpolate to all ages
     
+    final_asfr = pd.DataFrame(curve_shape, index=asfr_df.index, columns=asfr_df.columns)
+    section_sum = final_asfr.groupby(final_asfr.index // 5).sum()
+    section_sum.index = np.arange(15, 50, 5)
+    section_sum = section_sum.reindex(np.arange(15, 50)).ffill()
+
+    final_asfr = final_asfr / section_sum * asfr_df * 5
+    
     if plot:
         fig, ax = plt.subplots()
+        ax.plot(asfr_df.index, asfr_df['asfr'])
+        ax.plot(asfr_df.index, final_asfr['asfr'])
         ax.plot(asfr_df.index, curve_shape)
 
         plt.show()
 
-    return curve_shape
+    return final_asfr
 
 main()
