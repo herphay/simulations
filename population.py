@@ -82,4 +82,24 @@ def process_lifetable(
     return lifetable.set_index(['sex', 'age'])
 
 
+def integrate_birth_death(
+        asfr_grp: np.ndarray | None = None,
+        life_table_year: int = 2019,
+    ) -> pd.DataFrame:
+    if not asfr_grp:
+        asfr_grp = TFR.asfr_grp_2024
+    
+    birth_df = create_asfr_df(asfr_grp, TFR.start_age_2024)
+    birth_df = interpolate_tfr(birth_df)
+    birth_df.index.name = 'age'
+    birth_df = pd.concat({'Female': birth_df}, names=['sex'])
+
+    death_df = process_lifetable()
+
+    death_df.loc[('Female', slice(15, 49)), 'asfr'] = birth_df
+    # Slicing check: d.loc[('Female',slice(14, 50)), ]
+
+    return birth_df, death_df
+
+
 main()
