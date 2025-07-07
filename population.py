@@ -70,7 +70,9 @@ def process_lifetable(
 
     lifetable['qx'] = lifetable['dx'] / lifetable['lx']
 
-    return lifetable.reset_index(drop=True)
+    lifetable.columns = lifetable.columns.str.replace('age_x', 'age')
+
+    return lifetable.set_index(['sex', 'age'])
 
 
 main()
