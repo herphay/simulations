@@ -15,6 +15,13 @@ def main() -> None:
     ...
 
 
+def create_pop_df(
+        asfr_grp: np.ndarray | None = None,
+        life_table_year: int = 2019,
+    ) -> pd.DataFrame:
+    ...
+
+
 def create_asfr_df(
         asfr_grp: np.ndarray,
         start_age: np.ndarray,
