@@ -109,6 +109,8 @@ def process_lifetable(
 def integrate_birth_death(
         asfr_grp: np.ndarray | None = None,
         life_table_year: int = 2019,
+        calc_key_stats: bool = True,
+        gender_ratio: float = 1.05,
     ) -> pd.DataFrame:
     """
     Combine asfr df (determines birth) and lifetable df (determines death) into 1 overall df that 
@@ -122,12 +124,25 @@ def integrate_birth_death(
     birth_df.index.name = 'age'
     birth_df = pd.concat({'Female': birth_df}, names=['sex'])
 
-    death_df = process_lifetable()
+    death_df = process_lifetable(year=life_table_year)
 
     death_df.sort_index(inplace=True)
 
     death_df.loc[('Female', slice(15, 49)), 'asfr'] = birth_df
     # Slicing check: d.loc[('Female',slice(14, 50)), ]
+    # Require , after row slicing to prevent tuple being interpreted as row+col slicing
+
+    if calc_key_stats:
+        key_demographic = death_df.loc[('Female', slice(15, 49)), ]
+        steady_state_female_pop_ratio = (key_demographic['lx'] * key_demographic['asfr'] / 
+                                         1000).sum() / (1 + gender_ratio) / 100_000
+        replacement_rate = 1 / steady_state_female_pop_ratio
+        tfr = key_demographic['asfr'].sum() / 1000
+
+        print(f'The replacement Total Fertility Rate is {replacement_rate:.2f} at ' + 
+              f"{life_table_year}'s mortality and male:female birth ratio of {gender_ratio}")
+        print(f'Current TFR is {tfr}, with that, the expected female population is expected to ' +
+              f'drop by {steady_state_female_pop_ratio * 100:.2f}% per generation')
 
     return birth_df, death_df
 
