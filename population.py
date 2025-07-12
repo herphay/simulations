@@ -18,8 +18,28 @@ def main() -> None:
 def create_pop_df(
         asfr_grp: np.ndarray | None = None,
         life_table_year: int = 2019,
+        initial_pyramid: np.ndarray | int = 100_000,
     ) -> pd.DataFrame:
-    ...
+    """
+    Creates a population pyramid df with the associated birth/death statistics.
+
+    asfr_grp: 
+        5 year grouping of asfr for 15-49 year old females
+    life_table_year:
+        The year of which to reference lifetable death statistics
+    initial_pyramid:
+        The initial population pyramid, pass either as an array of length 100, where each position 
+        indicates the population of each age. Or an integer which represents a steady birth of that 
+        number of males & females for 100 years forming a pyramid solely shaped by mortality rate.
+    """
+    _, pop_df = integrate_birth_death(asfr_grp, life_table_year)
+    
+    if isinstance(initial_pyramid, int):
+        pop_df['pop'] = pop_df['lx'].apply(lambda x: round(x * initial_pyramid / 100_000))
+    else:
+        pop_df['pop'] = initial_pyramid
+    
+    return pop_df
 
 
 def create_asfr_df(
