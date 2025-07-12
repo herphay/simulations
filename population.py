@@ -19,6 +19,7 @@ def create_pop_df(
         asfr_grp: np.ndarray | None = None,
         life_table_year: int = 2019,
         initial_pyramid: np.ndarray | int = 100_000,
+        suppress_plots: bool = True,
     ) -> pd.DataFrame:
     """
     Creates a population pyramid df with the associated birth/death statistics.
@@ -32,7 +33,11 @@ def create_pop_df(
         indicates the population of each age. Or an integer which represents a steady birth of that 
         number of males & females for 100 years forming a pyramid solely shaped by mortality rate.
     """
-    _, pop_df = integrate_birth_death(asfr_grp, life_table_year)
+    suppress_plots = not suppress_plots
+    _, pop_df = integrate_birth_death(asfr_grp, 
+                                      life_table_year, 
+                                      calc_key_stats=suppress_plots,
+                                      suppress_plots=suppress_plots)
     
     if isinstance(initial_pyramid, int):
         pop_df['pop'] = pop_df['lx'].apply(lambda x: round(x * initial_pyramid / 100_000))
@@ -131,6 +136,7 @@ def integrate_birth_death(
         life_table_year: int = 2019,
         calc_key_stats: bool = True,
         gender_ratio: float = 1.05,
+        plot: bool = False,
     ) -> pd.DataFrame:
     """
     Combine asfr df (determines birth) and lifetable df (determines death) into 1 overall df that 
@@ -139,8 +145,8 @@ def integrate_birth_death(
     if not asfr_grp:
         asfr_grp = TFR.asfr_grp_2024
     
-    birth_df = create_asfr_df(asfr_grp, TFR.start_age_2024)
-    birth_df = interpolate_tfr(birth_df)
+    birth_df = create_asfr_df(asfr_grp, TFR.start_age_2024, plot=plot)
+    birth_df = interpolate_tfr(birth_df, plot=plot)
     birth_df.index.name = 'age'
     birth_df = pd.concat({'Female': birth_df}, names=['sex'])
 
