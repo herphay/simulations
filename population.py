@@ -15,6 +15,14 @@ def main() -> None:
     ...
 
 
+def update_pyramid(
+        pop: pd.DataFrame,
+        years: int = 1
+    ) -> pd.DataFrame:
+    if years < 1 and not isinstance(years, int):
+        raise ValueError('Update years must be an int >= 1')
+
+
 def create_pop_df(
         asfr_grp: np.ndarray | None = None,
         life_table_year: int = 2019,
