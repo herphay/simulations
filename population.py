@@ -21,6 +21,14 @@ def update_pyramid(
     ) -> pd.DataFrame:
     if years < 1 and not isinstance(years, int):
         raise ValueError('Update years must be an int >= 1')
+    
+    fertile_pop = pop.loc[pop['asfr'] > 0]
+    births = (fertile_pop['pop'] / 1_000 * fertile_pop['asfr']).sum().round()
+
+    pop['pop'] -= (pop['pop'] / pop['lx'] * pop['dx']).apply(round)
+    pop['pop'] = pop['pop'].shift(1, fill_value=births)
+
+    return pop
 
 
 def create_pop_df(
@@ -45,7 +53,7 @@ def create_pop_df(
     _, pop_df = integrate_birth_death(asfr_grp, 
                                       life_table_year, 
                                       calc_key_stats=suppress_plots,
-                                      suppress_plots=suppress_plots)
+                                      plot=suppress_plots)
     
     if isinstance(initial_pyramid, int):
         pop_df['pop'] = pop_df['lx'].apply(lambda x: round(x * initial_pyramid / 100_000))
