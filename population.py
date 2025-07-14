@@ -28,6 +28,9 @@ def update_pyramid(
     pop['pop'] -= (pop['pop'] / pop['lx'] * pop['dx']).apply(round)
     pop['pop'] = pop['pop'].shift(1, fill_value=births)
 
+    # Not discriminating between male and female -> need to shift separately
+    # also need to adjust male/female births by birth ratio 1.05
+
     return pop
 
 
