@@ -17,19 +17,21 @@ def main() -> None:
 
 def update_pyramid(
         pop: pd.DataFrame,
-        years: int = 1
+        years: int = 1,
+        inplace: bool = True
     ) -> pd.DataFrame:
     if years < 1 and not isinstance(years, int):
         raise ValueError('Update years must be an int >= 1')
+
+    if not inplace:
+        pop = pop.copy()
     
     fertile_pop = pop.loc[pop['asfr'] > 0]
-    births = (fertile_pop['pop'] / 1_000 * fertile_pop['asfr']).sum().round()
+    female_births = (fertile_pop['pop'] / 1_000 * fertile_pop['asfr']).sum() / 2.05
 
     pop['pop'] -= (pop['pop'] / pop['lx'] * pop['dx']).apply(round)
-    pop['pop'] = pop['pop'].shift(1, fill_value=births)
-
-    # Not discriminating between male and female -> need to shift separately
-    # also need to adjust male/female births by birth ratio 1.05
+    pop['pop'] = pop.groupby('sex')['pop'].shift(1, fill_value=round(female_births))
+    pop.loc[('Male', 0), 'pop'] = round(female_births * 1.05)
 
     return pop
 
