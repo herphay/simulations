@@ -26,12 +26,14 @@ def update_pyramid(
     if not inplace:
         pop = pop.copy()
     
-    fertile_pop = pop.loc[pop['asfr'] > 0]
-    female_births = (fertile_pop['pop'] / 1_000 * fertile_pop['asfr']).sum() / 2.05
 
-    pop['pop'] -= (pop['pop'] / pop['lx'] * pop['dx']).apply(round)
-    pop['pop'] = pop.groupby('sex')['pop'].shift(1, fill_value=round(female_births))
-    pop.loc[('Male', 0), 'pop'] = round(female_births * 1.05)
+    for _ in range(years):
+        fertile_pop = pop.loc[pop['asfr'] > 0]
+        female_births = (fertile_pop['pop'] / 1_000 * fertile_pop['asfr']).sum() / 2.05
+
+        pop['pop'] -= (pop['pop'] / pop['lx'] * pop['dx']).apply(round)
+        pop['pop'] = pop.groupby('sex')['pop'].shift(1, fill_value=round(female_births))
+        pop.loc[('Male', 0), 'pop'] = round(female_births * 1.05)
 
     return pop
 
