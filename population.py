@@ -28,6 +28,8 @@ def update_pyramid(
     
 
     for _ in range(years):
+        # Pandas usually returns a copy -> it is ok to keep re-slicing in a loop, performance loss 
+        # are usually insignificant. This is usually best practice
         fertile_pop = pop.loc[pop['asfr'] > 0]
         female_births = (fertile_pop['pop'] / 1_000 * fertile_pop['asfr']).sum() / 2.05
 
