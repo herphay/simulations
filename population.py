@@ -15,11 +15,61 @@ def main() -> None:
     ...
 
 
+def update_pyramid(
+        pop: pd.DataFrame,
+        years: int = 1,
+        inplace: bool = True
+    ) -> pd.DataFrame:
+    if years < 1 and not isinstance(years, int):
+        raise ValueError('Update years must be an int >= 1')
+
+    if not inplace:
+        pop = pop.copy()
+    
+
+    for _ in range(years):
+        # Pandas usually returns a copy -> it is ok to keep re-slicing in a loop, performance loss 
+        # are usually insignificant. This is usually best practice
+        fertile_pop = pop.loc[pop['asfr'] > 0]
+        female_births = (fertile_pop['pop'] / 1_000 * fertile_pop['asfr']).sum() / 2.05
+
+        pop['pop'] -= (pop['pop'] / pop['lx'] * pop['dx']).apply(round)
+        pop['pop'] = pop.groupby('sex')['pop'].shift(1, fill_value=round(female_births))
+        pop.loc[('Male', 0), 'pop'] = round(female_births * 1.05)
+
+    return pop
+
+
 def create_pop_df(
         asfr_grp: np.ndarray | None = None,
         life_table_year: int = 2019,
+        initial_pyramid: np.ndarray | int = 100_000,
+        suppress_plots: bool = True,
     ) -> pd.DataFrame:
-    ...
+    """
+    Creates a population pyramid df with the associated birth/death statistics.
+
+    asfr_grp: 
+        5 year grouping of asfr for 15-49 year old females
+    life_table_year:
+        The year of which to reference lifetable death statistics
+    initial_pyramid:
+        The initial population pyramid, pass either as an array of length 100, where each position 
+        indicates the population of each age. Or an integer which represents a steady birth of that 
+        number of males & females for 100 years forming a pyramid solely shaped by mortality rate.
+    """
+    suppress_plots = not suppress_plots
+    _, pop_df = integrate_birth_death(asfr_grp, 
+                                      life_table_year, 
+                                      calc_key_stats=suppress_plots,
+                                      plot=suppress_plots)
+    
+    if isinstance(initial_pyramid, int):
+        pop_df['pop'] = pop_df['lx'].apply(lambda x: round(x * initial_pyramid / 100_000))
+    else:
+        pop_df['pop'] = initial_pyramid
+    
+    return pop_df
 
 
 def create_asfr_df(
@@ -111,6 +161,7 @@ def integrate_birth_death(
         life_table_year: int = 2019,
         calc_key_stats: bool = True,
         gender_ratio: float = 1.05,
+        plot: bool = False,
     ) -> pd.DataFrame:
     """
     Combine asfr df (determines birth) and lifetable df (determines death) into 1 overall df that 
@@ -119,8 +170,8 @@ def integrate_birth_death(
     if not asfr_grp:
         asfr_grp = TFR.asfr_grp_2024
     
-    birth_df = create_asfr_df(asfr_grp, TFR.start_age_2024)
-    birth_df = interpolate_tfr(birth_df)
+    birth_df = create_asfr_df(asfr_grp, TFR.start_age_2024, plot=plot)
+    birth_df = interpolate_tfr(birth_df, plot=plot)
     birth_df.index.name = 'age'
     birth_df = pd.concat({'Female': birth_df}, names=['sex'])
 
