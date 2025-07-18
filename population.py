@@ -40,6 +40,25 @@ def update_pyramid(
     return pop
 
 
+def plot_pyramid(
+        pop: pd.DataFrame,
+        style: str = 'line'
+    ) -> None:
+    pop = pop.copy()
+    pop['pop'] /= pop.groupby('sex')['pop'].sum() / 100
+    males = pop.loc['Male', 'pop'].to_numpy()
+    females = pop.loc['Female', 'pop'].to_numpy()
+
+    ages = np.arange(101)
+
+    if style == 'line':
+        fig, (ax1, ax2) = plt.subplots(1, 2)
+        ax1.plot(-males, ages)
+        ax2.plot(females, ages)
+
+        plt.show()
+
+
 def create_pop_df(
         asfr_grp: np.ndarray | None = None,
         life_table_year: int = 2019,
