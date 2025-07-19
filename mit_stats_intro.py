@@ -52,6 +52,24 @@ def dice_roller(
           f'{prob_get}, \nthe theoretical probability is {prob_theo:.3f}.')
 
 
+def dice_sum_check(
+        sides: int = 6,
+        per_trial_rolls: int = 2,
+        repeat: int = 1000,
+        check_for_sum: int = 7,
+    ) -> None:
+    """
+    Roll n dice, check if the sum is X
+    """
+    rng = np.random.default_rng()
+    rolls = rng.integers(1, sides + 1, (per_trial_rolls, repeat))
+    trial_sum = rolls.sum(axis=0)
+
+    prob_exp = (trial_sum == check_for_sum).sum() / repeat
+    prob_theo = 0 # to be implemented
+
+    print(f'Experiment result of getting sum of {check_for_sum} with {per_trial_rolls} dice rolls' +
+          f' {prob_exp:.3f}.\nThe theoretical result probability is: {prob_theo:.3f}.')
 #%%
 if __name__ == '__main__':
     main()
