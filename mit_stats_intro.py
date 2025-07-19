@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+from collections.abc import Iterable
+from collections import Counter
+
 def main() -> None:
     """
     This file is for MIT OpenCourseWare - Introduction to Probability and Statistics
@@ -11,7 +14,7 @@ def main() -> None:
     """
 
 #%%
-# Week 1
+# Week 1 - general R samples
 def sample(
         x: np.ndarray = np.arange(10),
         k: int = 5,
@@ -81,8 +84,34 @@ def get_prob_dice_sum(
     """
     # References:
     # On mathematical formulation: https://mathworld.wolfram.com/Dice.html
+    # supplemental math formulation: https://blogs.sas.com/content/iml/2024/08/26/formula-sum-of-dice.html
     # On dynamic programming formulation: 
     # https://www.geeksforgeeks.org/dsa/probability-of-getting-all-possible-values-on-throwing-n-dices/
+
+
+# Week 1 - R Studio
+def birthday_collider(
+        ndays_in_year: int = 365,
+        npeople: int = 50,
+        ntrials: int = 1000
+    ) -> float:
+    ...
+
+
+def have_dup_set(
+        arr: Iterable[int]
+    ) -> bool:
+    """
+    Check if an array of ints have any duplicates.
+    """
+
+
+def have_dup_manual(
+        arr: Iterable[int]
+    ) -> bool:
+    """
+    Check if an array of ints have any duplicates.
+    """
 
 
 #%%
