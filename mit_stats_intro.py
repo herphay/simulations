@@ -66,10 +66,25 @@ def dice_sum_check(
     trial_sum = rolls.sum(axis=0)
 
     prob_exp = (trial_sum == check_for_sum).sum() / repeat
-    prob_theo = 0 # to be implemented
+    prob_theo = 1/6 # to be implemented
 
     print(f'Experiment result of getting sum of {check_for_sum} with {per_trial_rolls} dice rolls' +
           f' {prob_exp:.3f}.\nThe theoretical result probability is: {prob_theo:.3f}.')
+
+
+def get_prob_dice_sum(
+        sides: int = 6,
+        rolls: int = 2,
+    ) -> np.ndarray:
+    """
+    Calculates the probability of getting each possible sum with rolls roll of sides sided dice
+    """
+    # References:
+    # On mathematical formulation: https://mathworld.wolfram.com/Dice.html
+    # On dynamic programming formulation: 
+    # https://www.geeksforgeeks.org/dsa/probability-of-getting-all-possible-values-on-throwing-n-dices/
+
+
 #%%
 if __name__ == '__main__':
     main()
