@@ -98,12 +98,17 @@ def birthday_collider(
     ...
 
 
-def have_dup_set(
+def have_dup_counter(
         arr: Iterable[int]
     ) -> bool:
     """
     Check if an array of ints have any duplicates.
+    Uses built in Counter method
     """
+    # Counter(arr) returns a dict with unique values of the arr as keys and count as values
+    # .values() method on a dict returns a view of the dict's values (dict_value object)
+    # Iterate through the counts the check if any > 1 (have duplicate)
+    return any(count > 1 for count in Counter(arr).values())
 
 
 def have_dup_manual(
@@ -111,6 +116,7 @@ def have_dup_manual(
     ) -> bool:
     """
     Check if an array of ints have any duplicates.
+    Uses manual count method
     """
 
 
