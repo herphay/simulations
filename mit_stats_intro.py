@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 from collections.abc import Iterable
 from collections import Counter
 
+from time import perf_counter
+
 def main() -> None:
     """
     This file is for MIT OpenCourseWare - Introduction to Probability and Statistics
@@ -109,6 +111,7 @@ def have_dup_counter(
     # .values() method on a dict returns a view of the dict's values (dict_value object)
     # Iterate through the counts the check if any > 1 (have duplicate)
     # Perf test 1 (repeat 100k, per trial 100): 0.0003537
+    # Perf test 2 (dup_perf below): 0.4388, 0.4535, 0.4491
     return any(count > 1 for count in Counter(arr).values())
 
 
@@ -125,6 +128,7 @@ def have_dup_manual(
     # have_dup_manual; from numpy.random import default_rng; 
     # b = default_rng().integers(365, size=50)', repeat=1_000, number=100)
     # Perf test 1 (repeat 100k, per trial 100): 0.0004728
+    # Perf test 2 (dup_perf below): 0.5129, 9,5259, 0.5089
     counts = np.zeros(range)
 
     for item in arr:
@@ -134,6 +138,28 @@ def have_dup_manual(
             counts[item] += 1
     
     return False
+
+
+def dup_perf(
+        trials: int = 100_000,
+    ) -> dict[str, float]:
+    total_times = np.zeros(2)
+
+    for i in range(trials):
+        rng = np.random.default_rng()
+        b = rng.integers(365, size=50)
+
+        s = perf_counter()
+        have_dup_counter(b)
+        e = perf_counter()
+        total_times[0] += e - s
+
+        s = perf_counter()
+        have_dup_manual(b,  365)
+        e = perf_counter()
+        total_times[1] += e - s
+    
+    return total_times
 
 
 #%%
