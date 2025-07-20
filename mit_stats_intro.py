@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import math
 import matplotlib.pyplot as plt
 
 from collections.abc import Iterable
@@ -95,10 +96,58 @@ def get_prob_dice_sum(
 def birthday_collider(
         ndays_in_year: int = 365,
         npeople: int = 50,
-        ntrials: int = 1000
+        ntrials: int = 100_000,
+        print_results: bool = True,
     ) -> float:
-    ...
+    """
+    1. Randomly gen bdays based on ndays in year for npeople
+    2. Check if at least 2 people share the same bday
+    3. Repeat experiment for ntrials times
+    4. Report the average
+    """
+    shared_bdays = 0
 
+    for _ in range(ntrials):
+        rng = np.random.default_rng() # Reset RNG for each trial rather than use the same for all
+        # Generate random integers, each representing 1 day in the year for npeople all at once
+        bdays = rng.integers(ndays_in_year, size=npeople)
+
+        if have_dup_counter(bdays):
+            shared_bdays += 1
+    
+    exp_prob = shared_bdays / ntrials
+    theo_prob = 1 - math.perm(ndays_in_year, npeople) / ndays_in_year ** npeople
+
+    if print_results:
+        print(f'Experimental probability of shared birthday with {ndays_in_year} days in a year ' +
+            f'and group size of {npeople} is: {exp_prob:.4f}. ' + 
+            f'Theoretical probability is: {theo_prob:.4f}.')
+    
+    # Problem 2b: what is the min number of people for >50% prob of colliding bday in 365 day year
+    # ANS: 23 -> 0.5073 (22 at 0.4757)
+
+    return exp_prob, theo_prob
+
+
+def bday_prob_variance(
+        ndays_in_year: int = 365,
+        npeople: int = 15,
+        test_trials: Iterable[int] = [50, 100, 500, 1000, 2000],
+        num_trials: int = 100
+    ) -> dict[int, float]:
+    """
+    Returns standard deviation of the probability based on a number of trials
+    """
+    exp_sd = {}
+    for ntrials in test_trials:
+        exp_results = np.zeros(num_trials)
+        for i in range(num_trials):
+            exp_results[i], _ = birthday_collider(ndays_in_year, npeople, 
+                                                  ntrials=ntrials, print_results=False)
+
+        exp_sd[ntrials] = np.std(exp_results)
+    
+    return exp_sd
 
 def have_dup_counter(
         arr: Iterable[int]
@@ -145,7 +194,7 @@ def dup_perf(
     ) -> dict[str, float]:
     total_times = np.zeros(2)
 
-    for i in range(trials):
+    for _ in range(trials):
         rng = np.random.default_rng()
         b = rng.integers(365, size=50)
 
