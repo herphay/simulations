@@ -108,16 +108,32 @@ def have_dup_counter(
     # Counter(arr) returns a dict with unique values of the arr as keys and count as values
     # .values() method on a dict returns a view of the dict's values (dict_value object)
     # Iterate through the counts the check if any > 1 (have duplicate)
+    # Perf test 1 (repeat 100k, per trial 100): 0.0003537
     return any(count > 1 for count in Counter(arr).values())
 
 
 def have_dup_manual(
-        arr: Iterable[int]
+        arr: Iterable[int],
+        range: int,
     ) -> bool:
     """
     Check if an array of ints have any duplicates.
     Uses manual count method
     """
+    # Performance testing:
+    # repeat('have_dup_manual(b, 365)', setup='from mit_stats_intro import have_dup_counter, 
+    # have_dup_manual; from numpy.random import default_rng; 
+    # b = default_rng().integers(365, size=50)', repeat=1_000, number=100)
+    # Perf test 1 (repeat 100k, per trial 100): 0.0004728
+    counts = np.zeros(range)
+
+    for item in arr:
+        if counts[item] == 1:
+            return True
+        else:
+            counts[item] += 1
+    
+    return False
 
 
 #%%
