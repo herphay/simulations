@@ -96,7 +96,8 @@ def get_prob_dice_sum(
 def birthday_collider(
         ndays_in_year: int = 365,
         npeople: int = 50,
-        ntrials: int = 100_000
+        ntrials: int = 100_000,
+        print_results: bool = True,
     ) -> float:
     """
     1. Randomly gen bdays based on ndays in year for npeople
@@ -117,14 +118,36 @@ def birthday_collider(
     exp_prob = shared_bdays / ntrials
     theo_prob = 1 - math.perm(ndays_in_year, npeople) / ndays_in_year ** npeople
 
-    print(f'Experimental probability of shared birthday with {ndays_in_year} days in a year and ' +
-          f'group size of {npeople} is: {exp_prob:.4f}. Theoretical probability is: {theo_prob:.4f}.')
+    if print_results:
+        print(f'Experimental probability of shared birthday with {ndays_in_year} days in a year ' +
+            f'and group size of {npeople} is: {exp_prob:.4f}. ' + 
+            f'Theoretical probability is: {theo_prob:.4f}.')
     
     # Problem 2b: what is the min number of people for >50% prob of colliding bday in 365 day year
     # ANS: 23 -> 0.5073 (22 at 0.4757)
 
     return exp_prob, theo_prob
 
+
+def bday_prob_variance(
+        ndays_in_year: int = 365,
+        npeople: int = 15,
+        test_trials: Iterable[int] = [50, 100, 500, 1000, 2000],
+        num_trials: int = 100
+    ) -> dict[int, float]:
+    """
+    Returns standard deviation of the probability based on a number of trials
+    """
+    exp_sd = {}
+    for ntrials in test_trials:
+        exp_results = np.zeros(num_trials)
+        for i in range(num_trials):
+            exp_results[i], _ = birthday_collider(ndays_in_year, npeople, 
+                                                  ntrials=ntrials, print_results=False)
+
+        exp_sd[ntrials] = np.std(exp_results)
+    
+    return exp_sd
 
 def have_dup_counter(
         arr: Iterable[int]
