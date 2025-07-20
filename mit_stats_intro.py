@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import math
 import matplotlib.pyplot as plt
 
 from collections.abc import Iterable
@@ -95,9 +96,31 @@ def get_prob_dice_sum(
 def birthday_collider(
         ndays_in_year: int = 365,
         npeople: int = 50,
-        ntrials: int = 1000
+        ntrials: int = 100_000
     ) -> float:
-    ...
+    """
+    1. Randomly gen bdays based on ndays in year for npeople
+    2. Check if at least 2 people share the same bday
+    3. Repeat experiment for ntrials times
+    4. Report the average
+    """
+    shared_bdays = 0
+
+    for _ in range(ntrials):
+        rng = np.random.default_rng() # Reset RNG for each trial rather than use the same for all
+        # Generate random integers, each representing 1 day in the year for npeople all at once
+        bdays = rng.integers(ndays_in_year, size=npeople)
+
+        if have_dup_counter(bdays):
+            shared_bdays += 1
+    
+    exp_prob = shared_bdays / ntrials
+    theo_prob = 1 - math.perm(ndays_in_year, npeople) / ndays_in_year ** npeople
+
+    print(f'Experimental probability of shared birthday with {ndays_in_year} days in a year and ' +
+          f'group size of {npeople} is: {exp_prob:.4f}. Theoretical probability is: {theo_prob:.4f}.')
+    
+    return exp_prob, theo_prob
 
 
 def have_dup_counter(
@@ -145,7 +168,7 @@ def dup_perf(
     ) -> dict[str, float]:
     total_times = np.zeros(2)
 
-    for i in range(trials):
+    for _ in range(trials):
         rng = np.random.default_rng()
         b = rng.integers(365, size=50)
 
