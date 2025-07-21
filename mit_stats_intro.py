@@ -80,16 +80,34 @@ def dice_sum_check(
 
 def get_prob_dice_sum(
         sides: int = 6,
-        rolls: int = 2,
+        ndice: int = 2,
+        ver: str = 'theoretical'
     ) -> np.ndarray:
     """
-    Calculates the probability of getting each possible sum with rolls roll of sides sided dice
+    Calculates the probability of getting each possible sum with 'ndice' roll of 'sides' sided dice
     """
     # References:
     # On mathematical formulation: https://mathworld.wolfram.com/Dice.html
     # supplemental math formulation: https://blogs.sas.com/content/iml/2024/08/26/formula-sum-of-dice.html
     # On dynamic programming formulation: 
     # https://www.geeksforgeeks.org/dsa/probability-of-getting-all-possible-values-on-throwing-n-dices/
+
+    # Implementation for theoretical probability calc
+    if ver == 'theoretical':
+        possible_sums = list(range(ndice, ndice * sides + 1))
+        ways_to_achieve_sum = np.zeros(len(possible_sums), dtype=int)
+
+        for i, sum in enumerate(possible_sums):
+            ways = 0
+            for k in range((sum - ndice) // sides + 1):
+                ways += (-1) ** k * math.comb(ndice, k) * math.comb(sum - sides * k - 1, ndice - 1)
+            
+            ways_to_achieve_sum[i] = ways
+        
+        prob_to_achieve_sum = ways_to_achieve_sum / sides ** ndice
+
+        return dict(zip(possible_sums, prob_to_achieve_sum)), \
+               dict(zip(possible_sums, ways_to_achieve_sum))
 
 
 # Week 1 - R Studio
