@@ -167,6 +167,27 @@ def bday_prob_variance(
     
     return exp_sd
 
+
+def bday_sum_checker(
+        ndays_in_year: int = 365,
+        npeople: int = 50,
+    ) -> int:
+    """
+    Checks if my math is correct.
+
+    This does not give all the ways to sequence 50 bdays, because it only sum up no repeat, 1 repeat
+    2 repeat etc. but not 2 bdays each repeat once etc. So it under-counts
+    """
+    ways = math.perm(ndays_in_year, npeople)
+    for k in range(2, npeople + 1):
+        ways += math.comb(npeople, k) * ndays_in_year * math.perm(ndays_in_year - 1, npeople - k)
+    
+    print(ways)
+    total_ways = ndays_in_year ** npeople
+    print(total_ways)
+    return ways - total_ways
+
+
 def have_dup_counter(
         arr: Iterable[int]
     ) -> bool:
