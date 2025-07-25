@@ -116,6 +116,7 @@ def birthday_collider(
         npeople: int = 50,
         ntrials: int = 100_000,
         print_results: bool = True,
+        check_n: int = 2,
     ) -> float:
     """
     1. Randomly gen bdays based on ndays in year for npeople
@@ -130,11 +131,18 @@ def birthday_collider(
         # Generate random integers, each representing 1 day in the year for npeople all at once
         bdays = rng.integers(ndays_in_year, size=npeople)
 
-        if have_dup_counter(bdays):
+        if have_n_counter(bdays, check_n):
             shared_bdays += 1
     
     exp_prob = shared_bdays / ntrials
-    theo_prob = 1 - math.perm(ndays_in_year, npeople) / ndays_in_year ** npeople
+
+    if check_n == 2:
+        theo_prob = 1 - math.perm(ndays_in_year, npeople) / ndays_in_year ** npeople
+    elif check_n == 3:
+        theo_prob = 1 - (math.perm(ndays_in_year, npeople) + 
+                         bday_share_sum(ndays_in_year, npeople, nshare=2)) / ndays_in_year ** npeople
+    else:
+        theo_prob = "--Not supported--"
 
     if print_results:
         print(f'Experimental probability of shared birthday with {ndays_in_year} days in a year ' +
@@ -234,6 +242,13 @@ def have_dup_counter(
     # Perf test 1 (repeat 100k, per trial 100): 0.0003537
     # Perf test 2 (dup_perf below): 0.4388, 0.4535, 0.4491
     return any(count > 1 for count in Counter(arr).values())
+
+
+def have_n_counter(
+        arr: Iterable[int],
+        n
+    ) -> bool:
+    return any(count >= n for count in Counter(arr).values())
 
 
 def have_dup_manual(
