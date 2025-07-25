@@ -80,16 +80,34 @@ def dice_sum_check(
 
 def get_prob_dice_sum(
         sides: int = 6,
-        rolls: int = 2,
+        ndice: int = 2,
+        ver: str = 'theoretical'
     ) -> np.ndarray:
     """
-    Calculates the probability of getting each possible sum with rolls roll of sides sided dice
+    Calculates the probability of getting each possible sum with 'ndice' roll of 'sides' sided dice
     """
     # References:
     # On mathematical formulation: https://mathworld.wolfram.com/Dice.html
     # supplemental math formulation: https://blogs.sas.com/content/iml/2024/08/26/formula-sum-of-dice.html
     # On dynamic programming formulation: 
     # https://www.geeksforgeeks.org/dsa/probability-of-getting-all-possible-values-on-throwing-n-dices/
+
+    # Implementation for theoretical probability calc
+    if ver == 'theoretical':
+        possible_sums = list(range(ndice, ndice * sides + 1))
+        ways_to_achieve_sum = np.zeros(len(possible_sums), dtype=int)
+
+        for i, sum in enumerate(possible_sums):
+            ways = 0
+            for k in range((sum - ndice) // sides + 1):
+                ways += (-1) ** k * math.comb(ndice, k) * math.comb(sum - sides * k - 1, ndice - 1)
+            
+            ways_to_achieve_sum[i] = ways
+        
+        prob_to_achieve_sum = ways_to_achieve_sum / sides ** ndice
+
+        return dict(zip(possible_sums, prob_to_achieve_sum)), \
+               dict(zip(possible_sums, ways_to_achieve_sum))
 
 
 # Week 1 - R Studio
@@ -98,6 +116,7 @@ def birthday_collider(
         npeople: int = 50,
         ntrials: int = 100_000,
         print_results: bool = True,
+        check_n: int = 2,
     ) -> float:
     """
     1. Randomly gen bdays based on ndays in year for npeople
@@ -112,11 +131,18 @@ def birthday_collider(
         # Generate random integers, each representing 1 day in the year for npeople all at once
         bdays = rng.integers(ndays_in_year, size=npeople)
 
-        if have_dup_counter(bdays):
+        if have_n_counter(bdays, check_n):
             shared_bdays += 1
     
     exp_prob = shared_bdays / ntrials
-    theo_prob = 1 - math.perm(ndays_in_year, npeople) / ndays_in_year ** npeople
+
+    if check_n == 2:
+        theo_prob = 1 - math.perm(ndays_in_year, npeople) / ndays_in_year ** npeople
+    elif check_n == 3:
+        theo_prob = 1 - (math.perm(ndays_in_year, npeople) + 
+                         bday_share_sum(ndays_in_year, npeople, nshare=2)) / ndays_in_year ** npeople
+    else:
+        theo_prob = "--Not supported--"
 
     if print_results:
         print(f'Experimental probability of shared birthday with {ndays_in_year} days in a year ' +
@@ -149,6 +175,60 @@ def bday_prob_variance(
     
     return exp_sd
 
+
+def bday_sum_checker(
+        ndays_in_year: int = 365,
+        npeople: int = 50,
+    ) -> int:
+    """
+    Checks if my math is correct.
+
+    This does not give all the ways to sequence 50 bdays, because it only sum up no repeat, 1 repeat
+    2 repeat etc. but not 2 bdays each repeat once etc. So it under-counts
+    """
+    ways = math.perm(ndays_in_year, npeople)
+    for k in range(2, npeople + 1):
+        ways += math.comb(npeople, k) * ndays_in_year * math.perm(ndays_in_year - 1, npeople - k)
+    
+    print(ways)
+    total_ways = ndays_in_year ** npeople
+    print(total_ways)
+    return ways - total_ways
+
+
+def bday_share_sum(
+        ndays_in_year: int = 365,
+        npeople: int = 50,
+        nshare: int = 2,
+    ) -> int:
+    """
+    Gives the number of ways where only exactly nshare people are sharing bdays (there can be
+    multiple groups of nshare people each sharing different bdays)
+    """
+    # ways = math.perm(ndays_in_year, npeople) # Number ways to sequence n ppl with unique bdays
+    ways = 0
+    for k in range(1, npeople // nshare + 1):
+        ways += math.comb(ndays_in_year, k) * math.comb(ndays_in_year - k, npeople - nshare * k) * \
+                math.factorial(npeople) / (math.factorial(nshare) ** k)
+    
+    return ways
+
+
+def bday_total_sum(
+        ndays_in_year: int = 365,
+        npeople: int = 50,
+    ) -> int:
+    """
+    Also wrong for total bday sum (365^50), because there can be mixed bday sharing. I.e. pairs 
+    sharing + triplets sharing etc.
+    """
+    ways = math.perm(ndays_in_year, npeople)
+    for n in range(2, npeople + 1):
+        ways += bday_share_sum(ndays_in_year, npeople, n)
+    
+    return ways
+
+
 def have_dup_counter(
         arr: Iterable[int]
     ) -> bool:
@@ -162,6 +242,13 @@ def have_dup_counter(
     # Perf test 1 (repeat 100k, per trial 100): 0.0003537
     # Perf test 2 (dup_perf below): 0.4388, 0.4535, 0.4491
     return any(count > 1 for count in Counter(arr).values())
+
+
+def have_n_counter(
+        arr: Iterable[int],
+        n
+    ) -> bool:
+    return any(count >= n for count in Counter(arr).values())
 
 
 def have_dup_manual(
