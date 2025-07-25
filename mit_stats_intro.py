@@ -205,6 +205,22 @@ def bday_share_sum(
     
     return ways
 
+
+def bday_total_sum(
+        ndays_in_year: int = 365,
+        npeople: int = 50,
+    ) -> int:
+    """
+    Also wrong for total bday sum (365^50), because there can be mixed bday sharing. I.e. pairs 
+    sharing + triplets sharing etc.
+    """
+    ways = math.perm(ndays_in_year, npeople)
+    for n in range(2, npeople + 1):
+        ways += bday_share_sum(ndays_in_year, npeople, n)
+    
+    return ways
+
+
 def have_dup_counter(
         arr: Iterable[int]
     ) -> bool:
