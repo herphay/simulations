@@ -188,6 +188,23 @@ def bday_sum_checker(
     return ways - total_ways
 
 
+def bday_share_sum(
+        ndays_in_year: int = 365,
+        npeople: int = 50,
+        nshare: int = 2,
+    ) -> int:
+    """
+    Gives the number of ways where only exactly nshare people are sharing bdays (there can be
+    multiple groups of nshare people each sharing different bdays)
+    """
+    # ways = math.perm(ndays_in_year, npeople) # Number ways to sequence n ppl with unique bdays
+    ways = 0
+    for k in range(1, npeople // nshare + 1):
+        ways += math.comb(ndays_in_year, k) * math.comb(ndays_in_year - k, npeople - nshare * k) * \
+                math.factorial(npeople) / (math.factorial(nshare) ** k)
+    
+    return ways
+
 def have_dup_counter(
         arr: Iterable[int]
     ) -> bool:
