@@ -145,9 +145,10 @@ def birthday_collider(
         theo_prob = "--Not supported--"
 
     if print_results:
+        theo_print = round(theo_prob, 4) if not isinstance(theo_prob, str) else theo_prob
         print(f'Experimental probability of shared birthday with {ndays_in_year} days in a year ' +
             f'and group size of {npeople} is: {exp_prob:.4f}. ' + 
-            f'Theoretical probability is: {theo_prob:.4f}.')
+            f'Theoretical probability is: {theo_print}.')
     
     # Problem 2b: what is the min number of people for >50% prob of colliding bday in 365 day year
     # ANS: 23 -> 0.5073 (22 at 0.4757)
