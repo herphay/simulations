@@ -120,7 +120,7 @@ def birthday_collider(
     ) -> float:
     """
     1. Randomly gen bdays based on ndays in year for npeople
-    2. Check if at least 2 people share the same bday
+    2. Check if at least n people share the same bday
     3. Repeat experiment for ntrials times
     4. Report the average
     """
@@ -181,6 +181,7 @@ def bday_sum_checker(
         npeople: int = 50,
     ) -> int:
     """
+    WRONG MATH -> missed out mixed repeats like 2 ppl share + 3 ppl share and all the permu thereof
     Checks if my math is correct.
 
     This does not give all the ways to sequence 50 bdays, because it only sum up no repeat, 1 repeat
@@ -202,6 +203,7 @@ def bday_share_sum(
         nshare: int = 2,
     ) -> int:
     """
+    CORRECT FOR nshare = 2
     Gives the number of ways where only exactly nshare people are sharing bdays (there can be
     multiple groups of nshare people each sharing different bdays)
     """
@@ -219,6 +221,7 @@ def bday_total_sum(
         npeople: int = 50,
     ) -> int:
     """
+    WRONG MATH
     Also wrong for total bday sum (365^50), because there can be mixed bday sharing. I.e. pairs 
     sharing + triplets sharing etc.
     """
@@ -248,6 +251,10 @@ def have_n_counter(
         arr: Iterable[int],
         n
     ) -> bool:
+    """
+    Check if there is at least 1 instance of n or more repeats
+    IN-USE
+    """
     return any(count >= n for count in Counter(arr).values())
 
 
