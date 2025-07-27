@@ -384,7 +384,7 @@ def plt_binom(
         ax2.plot(x, cdf, 'o')
     
     if output:
-        return pmf
+        return pmf, cdf
 
 #%%
 if __name__ == '__main__':
