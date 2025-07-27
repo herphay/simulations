@@ -316,6 +316,26 @@ def w2_R_rq_dice_avg(
     return np.average(rng.integers(1, nsides + 1, size=ntrials))
 
 
+def w2_R_rq_longest_run(
+        seq_len: int = 20,
+        upper: int = 2
+    ) -> int:
+    rng = np.random.default_rng()
+    seq = rng.integers(upper, size=seq_len)
+    print(seq)
+
+    max_len = 0
+    current_len = 0
+    for i in range(1, len(seq)):
+        if seq[i - 1] == seq[i]:
+            current_len += 1
+        else:
+            max_len = max(max_len, current_len)
+            current_len = 0
+    
+    return max_len + 1
+
+
 #%%
 if __name__ == '__main__':
     main()
