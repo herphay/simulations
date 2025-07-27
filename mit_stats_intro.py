@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+import matplotlib.axes
 
 from collections.abc import Iterable
 from collections import Counter
@@ -335,6 +336,40 @@ def w2_R_rq_longest_run(
     
     return max_len + 1
 
+
+def plt_binom(
+        n: int = 10,
+        p: float = 0.5,
+        method: str = 'notvect',
+        output: bool = False,
+        plot: bool = True
+    ) -> None:
+    # Vectorize math.comb function for numpy to compute the combis efficiently
+    # TO TEST OUT EFFICIENCY vs LOOP
+
+    if method == 'vect':
+        vect_comb = np.vectorize(math.comb)
+        k = np.arange(n + 1)
+        pmf = vect_comb(n, k) * p ** k * (1 - p) ** (n - k)
+    
+    else:
+        pmf = np.zeros(n + 1)
+        for k in range(n + 1):
+            pmf[k] = math.comb(n, k) * p ** k * (1 - p) ** (n - k)
+    
+    cdf = np.cumsum(pmf)
+
+    if plot:
+        fig, (ax1, ax2) = plt.subplots(2, 1)
+        ax1: matplotlib.axes.Axes
+        ax2: matplotlib.axes.Axes
+
+        x = np.arange(n + 1)
+        ax1.plot(x, pmf, 'o')
+        ax2.plot(x, cdf, 'o')
+    
+    if output:
+        return pmf
 
 #%%
 if __name__ == '__main__':
