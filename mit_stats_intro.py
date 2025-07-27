@@ -307,5 +307,15 @@ def dup_perf(
 
 
 #%%
+# Week 2: Class 4 R reading questions
+def w2_R_rq_dice_avg(
+        ntrials: int = 100_000,
+        nsides: int = 6
+    ) -> float:
+    rng = np.random.default_rng()
+    return np.average(rng.integers(1, nsides + 1, size=ntrials))
+
+
+#%%
 if __name__ == '__main__':
     main()
