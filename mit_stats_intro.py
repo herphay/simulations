@@ -346,6 +346,21 @@ def plt_binom(
     ) -> None:
     # Vectorize math.comb function for numpy to compute the combis efficiently
     # TO TEST OUT EFFICIENCY vs LOOP
+    # 
+    # Performance testing
+    # timeit("plt_binom(method='vect', plot=False)", 'from mit_stats_intro import plt_binom', number=100_000)
+    # 1.1244, 1.1090, 1.1289
+    # VS
+    # timeit("plt_binom(method='va', plot=False)", 'from mit_stats_intro import plt_binom', number=100_000)
+    # 0.2861, 0.2694, 0.2693
+    # seems like vectorization for just 10 computations don't work
+    # At n = 60 vectorized:
+    # 1.5494, 1.5286, 1.5399
+    # loop:
+    # 1.0572, 1.0603, 1.0498
+    # 
+    # VERDICT: vectorization will catch up eventually BUT np.vect can't handle large python ints
+    # -> throws error "Python int too large to convert to C long" at n >= 67, so loop always wins
 
     if method == 'vect':
         vect_comb = np.vectorize(math.comb)
