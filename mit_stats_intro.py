@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+import matplotlib.axes
 
 from collections.abc import Iterable
 from collections import Counter
@@ -305,6 +306,85 @@ def dup_perf(
     
     return total_times
 
+
+#%%
+# Week 2: Class 4 R reading questions
+def w2_R_rq_dice_avg(
+        ntrials: int = 100_000,
+        nsides: int = 6
+    ) -> float:
+    rng = np.random.default_rng()
+    return np.average(rng.integers(1, nsides + 1, size=ntrials))
+
+
+def w2_R_rq_longest_run(
+        seq_len: int = 20,
+        upper: int = 2
+    ) -> int:
+    rng = np.random.default_rng()
+    seq = rng.integers(upper, size=seq_len)
+    print(seq)
+
+    max_len = 0
+    current_len = 0
+    for i in range(1, len(seq)):
+        if seq[i - 1] == seq[i]:
+            current_len += 1
+        else:
+            max_len = max(max_len, current_len)
+            current_len = 0
+    
+    return max_len + 1
+
+
+def plt_binom(
+        n: int = 10,
+        p: float = 0.5,
+        method: str = 'notvect',
+        output: bool = False,
+        plot: bool = True
+    ) -> None:
+    # Vectorize math.comb function for numpy to compute the combis efficiently
+    # TO TEST OUT EFFICIENCY vs LOOP
+    # 
+    # Performance testing
+    # timeit("plt_binom(method='vect', plot=False)", 'from mit_stats_intro import plt_binom', number=100_000)
+    # 1.1244, 1.1090, 1.1289
+    # VS
+    # timeit("plt_binom(method='va', plot=False)", 'from mit_stats_intro import plt_binom', number=100_000)
+    # 0.2861, 0.2694, 0.2693
+    # seems like vectorization for just 10 computations don't work
+    # At n = 60 vectorized:
+    # 1.5494, 1.5286, 1.5399
+    # loop:
+    # 1.0572, 1.0603, 1.0498
+    # 
+    # VERDICT: vectorization will catch up eventually BUT np.vect can't handle large python ints
+    # -> throws error "Python int too large to convert to C long" at n >= 67, so loop always wins
+
+    if method == 'vect':
+        vect_comb = np.vectorize(math.comb)
+        k = np.arange(n + 1)
+        pmf = vect_comb(n, k) * p ** k * (1 - p) ** (n - k)
+    
+    else:
+        pmf = np.zeros(n + 1)
+        for k in range(n + 1):
+            pmf[k] = math.comb(n, k) * p ** k * (1 - p) ** (n - k)
+    
+    cdf = np.cumsum(pmf)
+
+    if plot:
+        fig, (ax1, ax2) = plt.subplots(2, 1)
+        ax1: matplotlib.axes.Axes
+        ax2: matplotlib.axes.Axes
+
+        x = np.arange(n + 1)
+        ax1.plot(x, pmf, 'o')
+        ax2.plot(x, cdf, 'o')
+    
+    if output:
+        return pmf, cdf
 
 #%%
 if __name__ == '__main__':
