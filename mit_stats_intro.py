@@ -396,7 +396,7 @@ def plt_geom(
 
     k = np.arange(n_limit)
 
-    pmf = (1 - p) ** k * p
+    pmf = (1 - p) ** k * p # No difference in performance vs calc & assign q first
     cdf = np.cumsum(pmf)
 
     if plot:
