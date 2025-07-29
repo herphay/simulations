@@ -386,6 +386,30 @@ def plt_binom(
     if output:
         return pmf, cdf
 
+
+def plt_geom(
+        p: float = 0.5,
+        n_limit: int = 10,
+        output: bool = True,
+        plot: bool = True,
+    ) -> np.ndarray:
+
+    k = np.arange(n_limit)
+
+    pmf = (1 - p) ** k * p
+    cdf = np.cumsum(pmf)
+
+    if plot:
+        fig, (ax1, ax2) = plt.subplots(2, 1)
+        ax1: matplotlib.axes.Axes
+        ax2: matplotlib.axes.Axes
+        ax1.plot(k, pmf, 'o')
+        ax2.plot(k, cdf, 'o')
+
+    if output:
+        return pmf, cdf
+
+
 #%%
 if __name__ == '__main__':
     main()
