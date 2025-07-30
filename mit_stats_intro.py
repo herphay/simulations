@@ -421,6 +421,18 @@ def plt_uni(
     ax.plot(samples, np.ones(n), '.')
 
 
+def dice_func_EV(
+        nsides: int = 6,
+        ndice: int = 2,
+    ) -> float:
+    prob, _ = get_prob_dice_sum(nsides, ndice)
+    prob: dict
+
+    sums = np.fromiter(prob.keys(), dtype=int)
+    probs = np.fromiter(prob.values(), dtype=float)
+
+    return sum((sums ** 2 - 6 * sums + 1) * probs)
+
 #%%
 if __name__ == '__main__':
     main()
