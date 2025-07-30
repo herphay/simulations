@@ -433,6 +433,23 @@ def dice_func_EV(
 
     return sum((sums ** 2 - 6 * sums + 1) * probs)
 
+def sim_binom(
+        n: int = 10,
+        p: float = 0.5,
+        check_k: int = 5,
+    ) -> None:
+    """
+    Y~binom(n, p)
+    Simulates P(Y = k) & P(Y <= k)
+    """
+    theo_pob, theo_cdf = plt_binom(n, p, output=True, plot=True)
+
+    rng = np.random.default_rng()
+
+    # sim_result = rng.choice(2, size=n, p=[1 - p, p])
+    
+
+
 #%%
 if __name__ == '__main__':
     main()
