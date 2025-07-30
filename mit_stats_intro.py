@@ -410,6 +410,17 @@ def plt_geom(
         return pmf, cdf
 
 
+def plt_uni(
+        n: int = 1000,
+        output: bool = True
+    ) -> np.ndarray:
+    rng = np.random.default_rng()
+    samples = rng.random(n)
+
+    fig, ax = plt.subplots()
+    ax.plot(samples, np.ones(n), '.')
+
+
 #%%
 if __name__ == '__main__':
     main()
