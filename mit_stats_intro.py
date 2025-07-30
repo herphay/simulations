@@ -386,6 +386,70 @@ def plt_binom(
     if output:
         return pmf, cdf
 
+
+def plt_geom(
+        p: float = 0.5,
+        n_limit: int = 10,
+        output: bool = True,
+        plot: bool = True,
+    ) -> np.ndarray:
+
+    k = np.arange(n_limit)
+
+    pmf = (1 - p) ** k * p # No difference in performance vs calc & assign q first
+    cdf = np.cumsum(pmf)
+
+    if plot:
+        fig, (ax1, ax2) = plt.subplots(2, 1)
+        ax1: matplotlib.axes.Axes
+        ax2: matplotlib.axes.Axes
+        ax1.plot(k, pmf, 'o')
+        ax2.plot(k, cdf, 'o')
+
+    if output:
+        return pmf, cdf
+
+
+def plt_uni(
+        n: int = 1000,
+        output: bool = True
+    ) -> np.ndarray:
+    rng = np.random.default_rng()
+    samples = rng.random(n)
+
+    fig, ax = plt.subplots()
+    ax.plot(samples, np.ones(n), '.')
+
+
+def dice_func_EV(
+        nsides: int = 6,
+        ndice: int = 2,
+    ) -> float:
+    prob, _ = get_prob_dice_sum(nsides, ndice)
+    prob: dict
+
+    sums = np.fromiter(prob.keys(), dtype=int)
+    probs = np.fromiter(prob.values(), dtype=float)
+
+    return sum((sums ** 2 - 6 * sums + 1) * probs)
+
+def sim_binom(
+        n: int = 10,
+        p: float = 0.5,
+        check_k: int = 5,
+    ) -> None:
+    """
+    Y~binom(n, p)
+    Simulates P(Y = k) & P(Y <= k)
+    """
+    theo_pob, theo_cdf = plt_binom(n, p, output=True, plot=True)
+
+    rng = np.random.default_rng()
+
+    # sim_result = rng.choice(2, size=n, p=[1 - p, p])
+    
+
+
 #%%
 if __name__ == '__main__':
     main()
