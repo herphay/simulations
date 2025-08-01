@@ -450,6 +450,7 @@ def sim_binom(
     p_k = 0
     p_se_k = 0
 
+    # sim_result = rng.choice(2, size=n, p=[1 - p, p])
     for _ in range(trials):
         if (k := (rng.random(n) < p).sum()) < check_k:
             p_se_k += 1
@@ -460,12 +461,17 @@ def sim_binom(
     p_k /= trials
     p_se_k /= trials
 
-    # sim_result = rng.choice(2, size=n, p=[1 - p, p])
     print(f'We are testing Y~binim({n}, {p})')
     print(f'Theoretical vs simulated P(Y = {check_k}): {theo_pob[check_k]:.4f} vs {p_k:.4f}')
     print(f'Theoretical vs simulated P(Y <= {check_k}): {theo_cdf[check_k]:.4f} vs {p_se_k:.4f}')
 
     return p_k, p_se_k
+    # An aside from sim_binom performance
+    # np choice vs np random
+    # timeit('r.choice(2, size=10, p=[0.9, 1-0.9]).sum()', 'import numpy as np;r=np.random.default_rng()', number=100_000)
+    # 0.717, 0.738, 0.737
+    # timeit('(r.random(10) < 0.1).sum()', 'import numpy as np;r=np.random.default_rng()', number=100_000)
+    # 0.164, 0.164, 0.178
 
 
 #%%
