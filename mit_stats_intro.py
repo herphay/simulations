@@ -437,17 +437,37 @@ def sim_binom(
         n: int = 10,
         p: float = 0.5,
         check_k: int = 5,
-    ) -> None:
+        trials: int = 100_000
+    ) -> tuple[float, float]:
     """
     Y~binom(n, p)
     Simulates P(Y = k) & P(Y <= k)
     """
     theo_pob, theo_cdf = plt_binom(n, p, output=True, plot=True)
+    theo_pob = theo_pob[check_k]
+    theo_cdf = theo_cdf[check_k]
 
     rng = np.random.default_rng()
+    
+    p_k = 0
+    p_se_k = 0
+
+    for _ in range(trials):
+        if (k := (rng.random(n) < p).sum()) < check_k:
+            p_se_k += 1
+        elif k == check_k:
+            p_se_k += 1
+            p_k += 1
+    
+    p_k /= trials
+    p_se_k /= trials
 
     # sim_result = rng.choice(2, size=n, p=[1 - p, p])
-    
+    print(f'We are testing Y~binim({n}, {p})')
+    print(f'Theoretical vs simulated P(Y = {check_k}): {theo_pob:.4f} vs {p_k:.4f}')
+    print(f'Theoretical vs simulated P(Y <= {check_k}): {theo_cdf:.4f} vs {p_se_k:.4f}')
+
+    return p_k, p_se_k
 
 
 #%%
