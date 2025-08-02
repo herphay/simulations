@@ -511,6 +511,37 @@ def w2_RS_Q2b_decide_game_value(
     return payoff, pmf, ev
 
 
+def w2_RS_Q2c_sim_game(
+        ntosses: int = 10,
+        p: float = 0.6,
+        ntrials: int = 250_000,
+        method: str = 'not_loop',
+        print_results: bool = True
+    ) -> tuple[float, float]:
+    payoff, _, theo_ev = w2_RS_Q2b_decide_game_value(ntosses=ntosses, p=p, print_decision=False)
+
+    rng = np.random.default_rng()
+
+    # timeit("w2_RS_Q2c_sim_game(method='loop', print_results=False)", setup='from mit_stats_intro import w2_RS_Q2c_sim_game', number=20)
+    # 7.959, 8.148, 7.998
+    # vs
+    # timeit("w2_RS_Q2c_sim_game(method='not', print_results=False)", setup='from mit_stats_intro import w2_RS_Q2c_sim_game', number=20)
+    # 0.288, 0.268, 0.266
+    if method == 'loop':
+        payout = 0
+        for _ in range(ntrials):
+            payout += payoff[(rng.random(ntosses) < p).sum()]
+    else:
+        payout = payoff[(rng.random(ntrials * ntosses).\
+                         reshape((ntrials, ntosses)) < p).sum(axis=1)].sum()
+    
+    payout /= ntrials
+
+    if print_results:
+        print(f'Theoretical EV is {theo_ev:.2f}, vs simulated avg. payout of {payout:.2f}')
+
+    return theo_ev, payout
+
 #%%
 if __name__ == '__main__':
     main()
