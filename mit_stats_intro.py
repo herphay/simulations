@@ -474,6 +474,22 @@ def sim_binom(
     # 0.164, 0.164, 0.178
 
 
+######## Coin Toss Payoff R-Studio Q2 ###########
+def w2_RS_Q2a_plt_payoff(
+        payoff_func: str = 'k ** 2 - 7 * k',
+        ntosses: int = 10,
+        plot: bool = True,
+    ) -> np.ndarray:
+    k = np.arange(ntosses + 1)
+    payoff = eval(payoff_func, locals={'k': k})
+
+    if plot:
+        fig, ax = plt.subplots()
+        ax.plot(k, [0] * (ntosses + 1))
+        ax.plot(k, payoff, '.')
+
+    return payoff
+
 #%%
 if __name__ == '__main__':
     main()
