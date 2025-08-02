@@ -343,7 +343,7 @@ def plt_binom(
         method: str = 'notvect',
         output: bool = False,
         plot: bool = True
-    ) -> None:
+    ) -> tuple[np.ndarray, np.ndarray]:
     # Vectorize math.comb function for numpy to compute the combis efficiently
     # TO TEST OUT EFFICIENCY vs LOOP
     # 
@@ -489,6 +489,27 @@ def w2_RS_Q2a_plt_payoff(
         ax.plot(k, payoff, '.')
 
     return payoff
+
+
+def w2_RS_Q2b_decide_game_value(
+        ntosses: int = 10,
+        p: float = 0.6,
+        print_decision: bool = True
+    ) -> float:
+    """
+    Compute EV for the game with certain payoff
+    """
+    payoff = w2_RS_Q2a_plt_payoff(ntosses=ntosses, plot=False)
+    pmf, _ = plt_binom(n=ntosses, p=p, output=True, plot=False)
+
+    ev = (payoff * pmf).sum()
+    
+    if print_decision:
+        decision = 'not a' if ev < 0 else 'a'
+        print(f'Game is {decision} good bet, because EV is: {ev:.2f}')
+    
+    return payoff, pmf, ev
+
 
 #%%
 if __name__ == '__main__':
