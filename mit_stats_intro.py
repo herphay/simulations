@@ -542,6 +542,31 @@ def w2_RS_Q2c_sim_game(
 
     return theo_ev, payout
 
+
+######## Derangement R-Studio Q3 ###########
+def w2_RS_Q3_derangement(
+        nobjects: int = 10,
+        ntrials: int = 100_000,
+    ) -> float:
+    rng = np.random.default_rng()
+
+    base = np.arange(nobjects)
+
+    derangement_count = 0
+    for _ in range(ntrials):
+        if not any(base == rng.permutation(nobjects)):
+            derangement_count += 1
+    
+    # Theoretical derangement count
+    nfact = math.factorial(nobjects)
+    theo_derange_prob = int(nfact / math.e + 0.5) / nfact
+
+    exp_derange_prob = derangement_count / ntrials
+
+    print(f'Theoretical derangement probability is {theo_derange_prob:.3f} ' + 
+          f'vs simulation prob of {exp_derange_prob:.3f}')
+
+
 #%%
 if __name__ == '__main__':
     main()
