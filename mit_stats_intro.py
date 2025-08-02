@@ -343,7 +343,7 @@ def plt_binom(
         method: str = 'notvect',
         output: bool = False,
         plot: bool = True
-    ) -> None:
+    ) -> tuple[np.ndarray, np.ndarray]:
     # Vectorize math.comb function for numpy to compute the combis efficiently
     # TO TEST OUT EFFICIENCY vs LOOP
     # 
@@ -437,7 +437,8 @@ def sim_binom(
         n: int = 10,
         p: float = 0.5,
         check_k: int = 5,
-    ) -> None:
+        trials: int = 250_000
+    ) -> tuple[float, float]:
     """
     Y~binom(n, p)
     Simulates P(Y = k) & P(Y <= k)
@@ -445,9 +446,125 @@ def sim_binom(
     theo_pob, theo_cdf = plt_binom(n, p, output=True, plot=True)
 
     rng = np.random.default_rng()
+    
+    p_k = 0
+    p_se_k = 0
 
     # sim_result = rng.choice(2, size=n, p=[1 - p, p])
+    for _ in range(trials):
+        if (k := (rng.random(n) < p).sum()) < check_k:
+            p_se_k += 1
+        elif k == check_k:
+            p_se_k += 1
+            p_k += 1
     
+    p_k /= trials
+    p_se_k /= trials
+
+    print(f'We are testing Y~binim({n}, {p})')
+    print(f'Theoretical vs simulated P(Y = {check_k}): {theo_pob[check_k]:.4f} vs {p_k:.4f}')
+    print(f'Theoretical vs simulated P(Y <= {check_k}): {theo_cdf[check_k]:.4f} vs {p_se_k:.4f}')
+
+    return p_k, p_se_k
+    # An aside from sim_binom performance
+    # np choice vs np random
+    # timeit('r.choice(2, size=10, p=[0.9, 1-0.9]).sum()', 'import numpy as np;r=np.random.default_rng()', number=100_000)
+    # 0.717, 0.738, 0.737
+    # timeit('(r.random(10) < 0.1).sum()', 'import numpy as np;r=np.random.default_rng()', number=100_000)
+    # 0.164, 0.164, 0.178
+
+
+######## Coin Toss Payoff R-Studio Q2 ###########
+def w2_RS_Q2a_plt_payoff(
+        payoff_func: str = 'k ** 2 - 7 * k',
+        ntosses: int = 10,
+        plot: bool = True,
+    ) -> np.ndarray:
+    k = np.arange(ntosses + 1)
+    payoff = eval(payoff_func, locals={'k': k})
+
+    if plot:
+        fig, ax = plt.subplots()
+        ax.plot(k, [0] * (ntosses + 1))
+        ax.plot(k, payoff, '.')
+
+    return payoff
+
+
+def w2_RS_Q2b_decide_game_value(
+        ntosses: int = 10,
+        p: float = 0.6,
+        print_decision: bool = True
+    ) -> float:
+    """
+    Compute EV for the game with certain payoff
+    """
+    payoff = w2_RS_Q2a_plt_payoff(ntosses=ntosses, plot=False)
+    pmf, _ = plt_binom(n=ntosses, p=p, output=True, plot=False)
+
+    ev = (payoff * pmf).sum()
+    
+    if print_decision:
+        decision = 'not a' if ev < 0 else 'a'
+        print(f'Game is {decision} good bet, because EV is: {ev:.2f}')
+    
+    return payoff, pmf, ev
+
+
+def w2_RS_Q2c_sim_game(
+        ntosses: int = 10,
+        p: float = 0.6,
+        ntrials: int = 250_000,
+        method: str = 'not_loop',
+        print_results: bool = True
+    ) -> tuple[float, float]:
+    payoff, _, theo_ev = w2_RS_Q2b_decide_game_value(ntosses=ntosses, p=p, print_decision=False)
+
+    rng = np.random.default_rng()
+
+    # timeit("w2_RS_Q2c_sim_game(method='loop', print_results=False)", setup='from mit_stats_intro import w2_RS_Q2c_sim_game', number=20)
+    # 7.959, 8.148, 7.998
+    # vs
+    # timeit("w2_RS_Q2c_sim_game(method='not', print_results=False)", setup='from mit_stats_intro import w2_RS_Q2c_sim_game', number=20)
+    # 0.288, 0.268, 0.266
+    if method == 'loop':
+        payout = 0
+        for _ in range(ntrials):
+            payout += payoff[(rng.random(ntosses) < p).sum()]
+    else:
+        payout = payoff[(rng.random(ntrials * ntosses).\
+                         reshape((ntrials, ntosses)) < p).sum(axis=1)].sum()
+    
+    payout /= ntrials
+
+    if print_results:
+        print(f'Theoretical EV is {theo_ev:.2f}, vs simulated avg. payout of {payout:.2f}')
+
+    return theo_ev, payout
+
+
+######## Derangement R-Studio Q3 ###########
+def w2_RS_Q3_derangement(
+        nobjects: int = 10,
+        ntrials: int = 100_000,
+    ) -> float:
+    rng = np.random.default_rng()
+
+    base = np.arange(nobjects)
+
+    derangement_count = 0
+    for _ in range(ntrials):
+        if not any(base == rng.permutation(nobjects)):
+            derangement_count += 1
+    
+    # Theoretical derangement count
+    nfact = math.factorial(nobjects)
+    theo_derange_prob = int(nfact / math.e + 0.5) / nfact
+
+    exp_derange_prob = derangement_count / ntrials
+
+    print(f'Theoretical derangement probability is {theo_derange_prob:.3f} ' + 
+          f'vs simulation prob of {exp_derange_prob:.3f}')
 
 
 #%%
