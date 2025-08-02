@@ -567,6 +567,44 @@ def w2_RS_Q3_derangement(
           f'vs simulation prob of {exp_derange_prob:.3f}')
 
 
+######## W2 Pset Q6 ###########
+def w2_Pset_Q6_longest_run(
+        ntosses: int = 50,
+        p: float = 0.5,
+        ntrials: int = 10_000,
+        repeats: int = 3,
+        check_be_len: int = 8,
+    ) -> np.ndarray:
+    """
+    Find the longest run in a sequence of coin tosses
+    """
+    def find_longest_run(arr):
+        max_len = 0
+        run_len = 1
+        for i in range(len(arr) -  1):
+            if arr[i] == arr[i + 1]:
+                run_len += 1
+            else:
+                max_len = max(max_len, run_len)
+                run_len = 1
+
+        return max(max_len, run_len)
+    
+    rng = np.random.default_rng()
+
+    avg_run = np.zeros(3)
+    prob_run = np.zeros(3)
+
+    for i in range(repeats):
+        sim_tosses = rng.integers(2, size=ntrials * ntosses).reshape((ntrials, ntosses))
+        run_lens = np.fromiter((find_longest_run(arr) for arr in sim_tosses), dtype=int)
+
+        avg_run[i] = run_lens.sum() / ntrials
+        prob_run[i] = (run_lens >= check_be_len).sum() / ntrials
+    
+    return avg_run, prob_run
+
+
 #%%
 if __name__ == '__main__':
     main()
