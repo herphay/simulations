@@ -607,6 +607,14 @@ def w2_Pset_Q6_longest_run(
 
 #%%
 # Week 3:
+def w3_Selfcheck_plt_hist(
+        data_points: int = 100_000,
+        bins: int = 20,
+        bar_width: float = 0.85
+    ) -> None:
+    rng = np.random.default_rng()
+    scatter = rng.random(data_points)
+    plt.hist(scatter, bins=bins, rwidth=bar_width)
 
 #%%
 if __name__ == '__main__':
