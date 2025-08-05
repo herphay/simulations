@@ -9,18 +9,17 @@ def main():
 
 
 def rps_winner(
-        party1: str | Iterable[str] = 'r',
-        party2: str | Iterable[str] = 'r',
+        party1: Iterable[str] = 'r',
+        party2: Iterable[str] = 'r',
     ) -> bool | Iterable[bool]:
     """
-    Determine the winner of a rock paper scissor game
+    Determine the winner of a rock paper scissor game:
+        r > s | s > p | p > r
     """
-    if isinstance(party1, str) and isinstance(party2, str):
-        print('str')
-    elif isinstance(party1, Iterable) and isinstance(party2, Iterable):
-        print('iter')
+    if len(party1) == len(party2):
+        ...
     else:
-        raise ValueError('The 2 input must match')
+        raise ValueError('The length of both inputs must match')
 
 
 if __name__ == '__main__':
