@@ -15,6 +15,12 @@ def rps_winner(
     """
     Determine the winner of a rock paper scissor game
     """
+    if isinstance(party1, str) and isinstance(party2, str):
+        print('str')
+    elif isinstance(party1, Iterable) and isinstance(party2, Iterable):
+        print('iter')
+    else:
+        raise ValueError('The 2 input must match')
 
 
 if __name__ == '__main__':
