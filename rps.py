@@ -25,7 +25,7 @@ def rps_winner(
     if len(party1) != len(party2):
         raise ValueError('The length of both inputs must match')
     
-    for arr in [party1, party2]:
+    def integerize_rps(arr):
         # Convert input into np array of single byte chars
         arr = np.array(arr, dtype='S1')
         # Convert the single byte chars into ASCII ints
@@ -34,6 +34,11 @@ def rps_winner(
         # Check whether input is a subset of proper inputs
         if not set([112, 114, 115]) >= set(arr):
             raise ValueError('Unacceptable input: only rps accepted')
+        return arr
+    
+    party1 = integerize_rps(party1)
+    party2 = integerize_rps(party2)
+
     
     return party1, party2
     
