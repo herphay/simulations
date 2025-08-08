@@ -40,8 +40,7 @@ def rps_winner(
     party1 = integerize_rps(party1)
     party2 = integerize_rps(party2)
 
-    
-    return party1, party2
+    return party1 - party2
     
         
 
