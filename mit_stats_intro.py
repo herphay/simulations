@@ -606,5 +606,51 @@ def w2_Pset_Q6_longest_run(
 
 
 #%%
+# Week 3:
+def w3_Selfcheck_plt_hist(
+        data_points: int = 100_000,
+        bins: int = 20,
+        bar_width: float = 0.85
+    ) -> None:
+    rng = np.random.default_rng()
+    scatter = rng.random(data_points)
+    plt.hist(scatter, bins=bins, rwidth=bar_width)
+
+
+def w3_C5_mu_var_calculator(
+        values: np.ndarray,
+        pmf: np.ndarray,
+        print_results: bool = True
+    ) -> tuple[float, float]:
+    mu = (values * pmf).sum()
+    variance = (pmf * (values - mu) ** 2).sum()
+
+    if print_results:
+        print(f'Mean: {mu} | Var: {variance}')
+    
+    return mu, variance
+
+def w3_C5_E2():
+    fig, axs = plt.subplots(2, 2)
+    
+    v1 = np.arange(1,6)
+    pmf1 = np.array([1/5] * 5)
+    w3_C5_mu_var_calculator(v1, pmf1)
+    axs[0, 0].bar(v1, pmf1)
+
+    pmf2 = np.array([0.1, 0.2, 0.4, 0.2, 0.1])
+    w3_C5_mu_var_calculator(v1, pmf2)
+    axs[0, 1].bar(v1, pmf2)
+
+    pmf3 = np.array([0.5, 0, 0, 0, 0.5])
+    w3_C5_mu_var_calculator(v1, pmf3)
+    axs[1, 0].bar(v1, pmf3)
+
+    pmf4 = np.array([0, 0, 1, 0, 0])
+    w3_C5_mu_var_calculator(v1, pmf4)
+    axs[1, 1].bar(v1, pmf4)
+
+
+#%%
 if __name__ == '__main__':
     main()
