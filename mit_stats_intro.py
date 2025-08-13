@@ -616,6 +616,36 @@ def w3_Selfcheck_plt_hist(
     scatter = rng.random(data_points)
     plt.hist(scatter, bins=bins, rwidth=bar_width)
 
+
+def w3_C5_E2():
+    fig, axs = plt.subplots(2, 2)
+    
+    v1 = np.arange(1,6)
+    pmf1 = np.array([1/5] * 5)
+    mu1 = (v1 * pmf1).sum()
+    var1 = sum((v1 - mu1) ** 2 * pmf1)
+    print(f'Mean: {mu1} | Var: {var1}')
+    axs[0, 0].bar(v1, pmf1)
+
+    pmf2 = np.array([0.1, 0.2, 0.4, 0.2, 0.1])
+    mu2 = (v1 * pmf2).sum()
+    var2 = sum((v1 - mu2) ** 2 * pmf2)
+    print(f'Mean: {mu2} | Var: {var2}')
+    axs[0, 1].bar(v1, pmf2)
+
+    pmf3 = np.array([0.5, 0, 0, 0, 0.5])
+    mu3 = (v1 * pmf3).sum()
+    var3 = sum((v1 - mu3) ** 2 * pmf3)
+    print(f'Mean: {mu3} | Var: {var3}')
+    axs[1, 0].bar(v1, pmf3)
+
+    pmf4 = np.array([0, 0, 1, 0, 0])
+    mu4 = (v1 * pmf4).sum()
+    var4 = sum((v1 - mu4) ** 2 * pmf4)
+    print(f'Mean: {mu4} | Var: {var4}')
+    axs[1, 1].bar(v1, pmf4)
+
+
 #%%
 if __name__ == '__main__':
     main()
