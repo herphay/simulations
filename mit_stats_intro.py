@@ -650,6 +650,10 @@ def w3_C5_E2():
     w3_C5_mu_var_calculator(v1, pmf4)
     axs[1, 1].bar(v1, pmf4)
 
+    pmf5 = np.array([0.2, 0.3, 0.5])
+    v5 = np.array([1, 2,4])
+    w3_C5_mu_var_calculator(v5, pmf5)
+
 
 #%%
 if __name__ == '__main__':
