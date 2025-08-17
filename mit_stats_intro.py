@@ -700,6 +700,24 @@ def w3_s3_q1b(
     ax.plot(x_points, exp_points)
 
 
+def w3_s3_q2a(
+        rate: float = 1,
+        nsamples: int = 1000,
+        n_to_avg: int = 2,
+        bin_width: float = 0.4
+    ) -> None:
+    """
+    Simulate the average of n_to_avg exponential distributed samples: Y = (X1 + X2 + ... Xn) / n. 
+    """
+    rng = np.random.default_rng()
+    exp_data = rng.exponential(1 / rate, size=nsamples * n_to_avg)
+    exp_data = np.average(exp_data.reshape((nsamples, n_to_avg)), axis=1)
+
+    bins = np.arange(0, exp_data.max() + bin_width, bin_width)
+
+    plt.hist(exp_data, bins=bins, density=True)
+
+
 #%%
 if __name__ == '__main__':
     main()
