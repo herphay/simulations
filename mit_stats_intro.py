@@ -745,6 +745,11 @@ def w3_s3_q2b(
     plt.plot(theo_x_points, theo_density)
 
 
+def w3_pset3_data():
+    source = r'data/pset3_data.csv'
+    # data = pd.read_csv(source, header=None).T[0].to_numpy()
+    data = np.genfromtxt(source, delimiter=',')
+    return data
 #%%
 if __name__ == '__main__':
     main()
