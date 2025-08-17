@@ -676,6 +676,8 @@ def w3_s3_q1a(
     # Rate is the arrival rate, scale is then the average time between arrivals
     sample = rng.exponential(1 / rate, nsamples) # generate exponential samples
     bins = np.arange(0, sample.max() + bin_width, bin_width) # get the binds
+
+    # bins parameter allows us to define all the bins [a, b, c ... z] is [a,b), [b,c) until [y,z] 
     plt.hist(sample, bins=bins)
 
 
