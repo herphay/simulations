@@ -746,7 +746,14 @@ def w3_s3_q2b(
 
 
 def w3_pset3_data():
-    source = r'data/pset3_data.csv'
+    # Pre-prosessing (original file given as 1 row of data)
+    # with open('data/pset3_data.csv') as f:
+    #     a = f.readline()
+    # with open('data/pset3_data.csv', 'w') as f:
+    #     writer = csv.writer(f,delimiter=',')
+    #     writer.writerows([[v] for v in a.split(',')])
+
+    source = r'data/pset3_data1.csv'
     # data = pd.read_csv(source, header=None).T[0].to_numpy()
     data = np.genfromtxt(source, delimiter=',')
 
