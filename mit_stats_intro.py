@@ -4,6 +4,8 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.axes
 
+from scipy.stats import norm
+
 from collections.abc import Iterable
 from collections import Counter
 
@@ -19,7 +21,7 @@ def main() -> None:
 
 #%%
 # Week 1 - general R samples
-def sample(
+def w1_sample(
         x: np.ndarray = np.arange(10),
         k: int = 5,
         replace: bool = False
@@ -649,6 +651,98 @@ def w3_C5_E2():
     pmf4 = np.array([0, 0, 1, 0, 0])
     w3_C5_mu_var_calculator(v1, pmf4)
     axs[1, 1].bar(v1, pmf4)
+
+    pmf5 = np.array([0.2, 0.3, 0.5])
+    v5 = np.array([1, 2,4])
+    w3_C5_mu_var_calculator(v5, pmf5)
+
+
+def w3_s3_q1a(
+        rate: float = 1,
+        nsamples: int = 1000,
+        bin_width: float = 0.4
+    ) -> None:
+    """
+    Draw frequency histogram of an exponential distribution
+    Rate example (lm): 5 cars / minute, 1 defect / meter
+    pdf = -lm * e^(-lm * x)
+    cdf = 1 - e^(-lm * x)
+    range: [0, inf)
+    """
+    rng = np.random.default_rng()
+
+    ### np exponential dist generator use SCALE instead of RATE ###
+    # Scale is the inverse of rate -> scale = 1 / rate (rate is lambda)
+    # Rate is the arrival rate, scale is then the average time between arrivals
+    sample = rng.exponential(1 / rate, nsamples) # generate exponential samples
+    bins = np.arange(0, sample.max() + bin_width, bin_width) # get the binds
+
+    # bins parameter allows us to define all the bins [a, b, c ... z] is [a,b), [b,c) until [y,z] 
+    plt.hist(sample, bins=bins)
+
+
+def w3_s3_q1b(
+        rate: float = 1,
+        nsamples: int = 1000,
+        bin_width: float = 0.4,
+        exp_point_count: int = 101
+    ) -> None:
+    rng = np.random.default_rng()
+    sample = rng.exponential(1 / rate, nsamples)
+    max_sim = sample.max()
+    bins = np.arange(0, max_sim + bin_width, bin_width)
+
+    x_points = np.linspace(0, max_sim, exp_point_count)
+    exp_points = rate * math.e ** (-rate * x_points)
+
+    fig, ax = plt.subplots()
+    ax.hist(sample, bins=bins, density=True)
+    ax.plot(x_points, exp_points)
+
+
+def w3_s3_q2a(
+        rate: float = 1,
+        nsamples: int = 1000,
+        n_to_avg: int = 2,
+        bin_width: float = 0.4
+    ) -> None:
+    """
+    Simulate the average of n_to_avg exponential distributed samples: Y = (X1 + X2 + ... Xn) / n. 
+    """
+    rng = np.random.default_rng()
+    exp_data = rng.exponential(1 / rate, size=nsamples * n_to_avg)
+    exp_data = np.average(exp_data.reshape((nsamples, n_to_avg)), axis=1)
+
+    bins = np.arange(0, exp_data.max() + bin_width, bin_width)
+
+    plt.hist(exp_data, bins=bins, density=True)
+
+
+def w3_s3_q2b(
+        rate: float = 1,
+        nsamples: int = 1000,
+        n_to_avg: int = 2,
+        bin_width: float = 0.4,
+        theo_point_count: int = 101
+    ) -> None:
+    rng = np.random.default_rng()
+
+    exp_data = rng.exponential(1 / rate, size=nsamples * n_to_avg)
+    exp_data = np.average(exp_data.reshape((nsamples, n_to_avg)), axis=1)
+    bins = np.arange(0, exp_data.max() + bin_width, bin_width)
+
+    mean_of_avg = 1 / rate
+    std_of_avg = mean_of_avg / n_to_avg ** 0.5
+
+    theo_x_points = np.linspace(max(0, mean_of_avg - 4 * std_of_avg), 
+                                max(exp_data.max(), mean_of_avg + 4 * std_of_avg), 
+                                theo_point_count)
+    
+    theo_density = math.e ** -(((theo_x_points - mean_of_avg) / std_of_avg) ** 2 / 2) / \
+                   (std_of_avg * (2 * math.pi) ** 0.5)
+    
+    plt.hist(exp_data, bins=bins, density=True)
+    plt.plot(theo_x_points, theo_density)
 
 
 #%%
