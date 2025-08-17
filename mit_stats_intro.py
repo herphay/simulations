@@ -749,6 +749,11 @@ def w3_pset3_data():
     source = r'data/pset3_data.csv'
     # data = pd.read_csv(source, header=None).T[0].to_numpy()
     data = np.genfromtxt(source, delimiter=',')
+
+    plt.hist(data, bins=50)
+    # ~20% survive >= 5 years
+    # ~50% still dies within 15 months
+    # So treatment is helping for 50% of the time with only 20% complete cure rate
     return data
 #%%
 if __name__ == '__main__':
