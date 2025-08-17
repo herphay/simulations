@@ -4,6 +4,8 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.axes
 
+from scipy.stats import norm
+
 from collections.abc import Iterable
 from collections import Counter
 
@@ -19,7 +21,7 @@ def main() -> None:
 
 #%%
 # Week 1 - general R samples
-def sample(
+def w1_sample(
         x: np.ndarray = np.arange(10),
         k: int = 5,
         replace: bool = False
@@ -653,6 +655,28 @@ def w3_C5_E2():
     pmf5 = np.array([0.2, 0.3, 0.5])
     v5 = np.array([1, 2,4])
     w3_C5_mu_var_calculator(v5, pmf5)
+
+
+def w3_s3_q1a(
+        rate: float = 1,
+        nsamples: int = 1000,
+        bin_width: float = 0.4
+    ) -> None:
+    """
+    Draw frequency histogram of an exponential distribution
+    Rate example (lm): 5 cars / minute, 1 defect / meter
+    pdf = -lm * e^(-lm * x)
+    cdf = 1 - e^(-lm * x)
+    range: [0, inf)
+    """
+    rng = np.random.default_rng()
+
+    ### np exponential dist generator use SCALE instead of RATE ###
+    # Scale is the inverse of rate -> scale = 1 / rate (rate is lambda)
+    # Rate is the arrival rate, scale is then the average time between arrivals
+    sample = rng.exponential(1 / rate, nsamples) # generate exponential samples
+    bins = np.arange(0, sample.max() + bin_width, bin_width) # get the binds
+    plt.hist(sample, bins=bins)
 
 
 #%%
