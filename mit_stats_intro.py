@@ -681,6 +681,25 @@ def w3_s3_q1a(
     plt.hist(sample, bins=bins)
 
 
+def w3_s3_q1b(
+        rate: float = 1,
+        nsamples: int = 1000,
+        bin_width: float = 0.4,
+        exp_point_count: int = 101
+    ) -> None:
+    rng = np.random.default_rng()
+    sample = rng.exponential(1 / rate, nsamples)
+    max_sim = sample.max()
+    bins = np.arange(0, max_sim + bin_width, bin_width)
+
+    x_points = np.linspace(0, max_sim, exp_point_count)
+    exp_points = rate * math.e ** (-rate * x_points)
+
+    fig, ax = plt.subplots()
+    ax.hist(sample, bins=bins, density=True)
+    ax.plot(x_points, exp_points)
+
+
 #%%
 if __name__ == '__main__':
     main()
