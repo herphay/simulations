@@ -718,6 +718,33 @@ def w3_s3_q2a(
     plt.hist(exp_data, bins=bins, density=True)
 
 
+def w3_s3_q2b(
+        rate: float = 1,
+        nsamples: int = 1000,
+        n_to_avg: int = 2,
+        bin_width: float = 0.4,
+        theo_point_count: int = 101
+    ) -> None:
+    rng = np.random.default_rng()
+
+    exp_data = rng.exponential(1 / rate, size=nsamples * n_to_avg)
+    exp_data = np.average(exp_data.reshape((nsamples, n_to_avg)), axis=1)
+    bins = np.arange(0, exp_data.max() + bin_width, bin_width)
+
+    mean_of_avg = 1 / rate
+    std_of_avg = mean_of_avg / n_to_avg ** 0.5
+
+    theo_x_points = np.linspace(max(0, mean_of_avg - 4 * std_of_avg), 
+                                max(exp_data.max(), mean_of_avg + 4 * std_of_avg), 
+                                theo_point_count)
+    
+    theo_density = math.e ** -(((theo_x_points - mean_of_avg) / std_of_avg) ** 2 / 2) / \
+                   (std_of_avg * (2 * math.pi) ** 0.5)
+    
+    plt.hist(exp_data, bins=bins, density=True)
+    plt.plot(theo_x_points, theo_density)
+
+
 #%%
 if __name__ == '__main__':
     main()
