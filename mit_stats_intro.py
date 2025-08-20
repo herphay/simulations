@@ -745,6 +745,23 @@ def w3_s3_q2b(
     plt.plot(theo_x_points, theo_density)
 
 
+def w3_pset3_data():
+    # Pre-prosessing (original file given as 1 row of data)
+    # with open('data/pset3_data.csv') as f:
+    #     a = f.readline()
+    # with open('data/pset3_data.csv', 'w') as f:
+    #     writer = csv.writer(f,delimiter=',')
+    #     writer.writerows([[v] for v in a.split(',')])
+
+    source = r'data/pset3_data1.csv'
+    # data = pd.read_csv(source, header=None).T[0].to_numpy()
+    data = np.genfromtxt(source, delimiter=',')
+
+    plt.hist(data, bins=50)
+    # ~20% survive >= 5 years
+    # ~50% still dies within 15 months
+    # So treatment is helping for 50% of the time with only 20% complete cure rate
+    return data
 #%%
 if __name__ == '__main__':
     main()
