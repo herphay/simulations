@@ -8,6 +8,19 @@ def main():
     ...
 
 
+def simulate_1_gen(
+        ecosys_dict: dict,
+    ) -> dict:
+    """
+    Simulate 1 generation of competition among different RPS strategies
+
+    ecosys_dict: collection of strategy classes and their starting population
+        key of the class, value of population size
+    
+    Returns the same dict with updated population
+    """
+
+
 def rps_winner(
         party1: Iterable[str] = 'r',
         party2: Iterable[str] = 'r',
