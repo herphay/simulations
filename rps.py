@@ -11,9 +11,7 @@ def main():
 
 
 def simulate_1_gen(
-        ecosystem: list[list] = [[strategy.always_paper, 500], 
-                                 [strategy.always_rock, 700], 
-                                 [strategy.always_scissor, 800]],
+        ecosystem: list[list],
         rng: np.random.Generator = None,
     ) -> list[list]:
     """
@@ -41,7 +39,7 @@ def simulate_1_gen(
     # Method 1: 3.102, 3.182, 3.137
     # Method 2: 2.499, 2.527, 2.539
     # Method 3: 0.156, 0.150, 0.157
-
+    
     # Create strat array -> [0, 0, 1, 2, 2, 2] means first 2 element are strat 0, next 1 strat 1 etc
     strats = np.concat([np.full(species[1], i) for i, species in enumerate(ecosystem)])
     # Get the plays for each individual, array is in order of species
@@ -53,7 +51,7 @@ def simulate_1_gen(
     # Create random matching by shuffling individuals around, unshuffle 
     pop_count = len(plays)
     shuffle = rng.permutation(pop_count)
-    unshuffle = np.zeros(pop_count)
+    unshuffle = np.zeros(pop_count, dtype=int)
     unshuffle[shuffle] = np.arange(pop_count)
 
     # Shuffle the plays
@@ -63,13 +61,26 @@ def simulate_1_gen(
     h1_start = pop_count % 2
     h1_stop = pop_count // 2 + h1_start
 
-    results = np.zeros(pop_count, dtype=int)
-
+    results = np.zeros(pop_count, dtype=np.int8)
+    # Generate results of playoff -> +ve means member won, -ve means lost
     half_result = rps_winner(plays[h1_start:h1_stop], plays[h1_stop:])
-
+    results[h1_start:h1_stop] = half_result
+    results[h1_stop:] = -half_result
     
+    # Get the outcome array, which represents how much each individual propagate to the next gen
+    # 0 mean the individual have 0 offspring, 1 means 1 offspring etc.
+    results = play_outcome_to_pop(results, method='const')
+    
+    # Unshuffle the results to match the initial individual sequence
+    results = results[unshuffle]
 
-    return strats, plays
+    pop_cumsum = 0
+    for species in ecosystem:
+        next_pop_cumsum = pop_cumsum + species[1]
+        species[1] = results[pop_cumsum:next_pop_cumsum].sum()
+        pop_cumsum = next_pop_cumsum
+
+    return ecosystem
 
 
 def rps_winner(
@@ -110,6 +121,21 @@ def rps_winner(
     return result
     
         
+def play_outcome_to_pop(
+        results: np.ndarray,
+        method: str = 'const'
+    ) -> np.ndarray:
+    """
+    Based on each individual's play outcome, determine how population change
+    """
+    match method:
+        case 'const':
+            results[results > 0] = 2
+            results[results == 0] = 1
+            results[results < 0] = 0
+            return results
+        case _:
+            raise ValueError('Invalid method')
 
 
 if __name__ == '__main__':
