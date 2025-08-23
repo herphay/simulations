@@ -4,12 +4,17 @@ import math
 
 from collections.abc import Iterable
 
+import rps_strats as strategy
+
 def main():
     ...
 
 
 def simulate_1_gen(
-        ecosystem: list[list]
+        ecosystem: list[list] = [[strategy.always_paper, 500], 
+                                 [strategy.always_rock, 700], 
+                                 [strategy.always_scissor, 800]],
+        rng: np.random.Generator = None,
     ) -> list[list]:
     """
     Simulate 1 generation of competition among different RPS strategies
@@ -36,7 +41,22 @@ def simulate_1_gen(
     # Method 1: 3.102, 3.182, 3.137
     # Method 2: 2.499, 2.527, 2.539
     # Method 3: 0.156, 0.150, 0.157
+
+    # Create strat array -> [0, 0, 1, 2, 2, 2] means first 2 element are strat 0, next 1 strat 1 etc
     strats = np.concat([np.full(species[1], i) for i, species in enumerate(ecosystem)])
+    # Get the plays for each individual, array is in order of species
+    plays = np.concat([list(species[0].get_plays(species[1])) for species in ecosystem])
+    
+    if not rng:
+        rng = np.random.default_rng()
+
+    # Create random matching by shuffling individuals around, unshuffle 
+    pop_count = len(plays)
+    shuffle = rng.permutation(pop_count)
+    unshuffle = np.zeros(pop_count)
+    unshuffle[shuffle] = np.arange(pop_count)
+
+    return strats, plays
 
 
 def rps_winner(
