@@ -56,6 +56,19 @@ def simulate_1_gen(
     unshuffle = np.zeros(pop_count)
     unshuffle[shuffle] = np.arange(pop_count)
 
+    # Shuffle the plays
+    plays = plays[shuffle]
+
+    # Split into 2 groups for playoffs
+    h1_start = pop_count % 2
+    h1_stop = pop_count // 2 + h1_start
+
+    results = np.zeros(pop_count, dtype=int)
+
+    half_result = rps_winner(plays[h1_start:h1_stop], plays[h1_stop:])
+
+    
+
     return strats, plays
 
 
