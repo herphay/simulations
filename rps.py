@@ -9,16 +9,34 @@ def main():
 
 
 def simulate_1_gen(
-        ecosys_dict: dict,
-    ) -> dict:
+        ecosystem: list[list]
+    ) -> list[list]:
     """
     Simulate 1 generation of competition among different RPS strategies
 
-    ecosys_dict: collection of strategy classes and their starting population
-        key of the class, value of population size
+    ecosystem: collection of strategy classes and their starting population
+        list of list, each with:
+            key of the class, value of population size
     
-    Returns the same dict with updated population
+    Returns the same list of list with updated population
     """
+    # if method == 1:
+    #     strats = np.array([i for i, species in enumerate(ecosystem) for _ in range(species[1])])
+    # elif method == 2:
+    #     strats = []
+    #     for i, species in enumerate(ecosystem):
+    #         strats += [i] * species[1]
+    #     strats = np.array(strats)
+    # else:
+    #     strats = np.concat([np.full(species[1], i) for i, species in enumerate(ecosystem)])
+    # PERFORMANCE RESULTS
+    # timeit('simulate_1_gen(e, 1)', 
+    # "from rps import simulate_1_gen;e = [['a', 500], ['b', 700], ['c', 800]]", 
+    # number=50_000)
+    # Method 1: 3.102, 3.182, 3.137
+    # Method 2: 2.499, 2.527, 2.539
+    # Method 3: 0.156, 0.150, 0.157
+    strats = np.concat([np.full(species[1], i) for i, species in enumerate(ecosystem)])
 
 
 def rps_winner(
