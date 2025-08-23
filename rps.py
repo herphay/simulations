@@ -83,8 +83,8 @@ def rps_winner(
         r: 114 | p: 112 | s: 115
 
         rr: 0  | pp: 0  | ss: 0    # Tie
-        rs: -1 | ps: -3 | pr: -2   # 1st position win
-        sr: 1  | sp: 3  | rp: 2    # 2nd position win
+        rs: -1 | sp: 3 | pr: -2    # 1st position win
+        sr: 1  | ps: -3  | rp: 2   # 2nd position win
     """
     # from rps import rps_winner;a=list('rpsrppssr');b=list('rpsssrrpp')
     if len(party1) != len(party2):
@@ -103,8 +103,11 @@ def rps_winner(
     
     party1 = integerize_rps(party1)
     party2 = integerize_rps(party2)
+    result = party1 - party2
+    result[((-3 < result) & (result < 0)) | (result == 3)] = 99  # 1st position win
+    result[((3 > result) & (result > 0)) | (result == -3)] = -99 # 2nd position win
 
-    return party1 - party2
+    return result
     
         
 
