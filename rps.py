@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import math
+import matplotlib.pyplot as plt
 
 from collections.abc import Iterable
 
@@ -8,6 +9,34 @@ import rps_strats as strategy
 
 def main():
     ...
+
+
+def rps_strat_simulator(
+        generations: int = 50,
+        same_rng_seed: bool = True
+    ) -> None:
+    ecosystem = [
+        [strategy.always_paper, 10000],
+        [strategy.always_rock, 10000],
+        [strategy.always_scissor, 10000]
+    ]
+
+    initial_pop = sum([species[1] for species in ecosystem])
+
+    # population record has col of species, and each row the pop of a generation
+    population_record = np.zeros((generations, len(ecosystem)), dtype=int)
+
+    rng = np.random.default_rng() if same_rng_seed else None
+
+    for i in range(generations):
+        for j, species in enumerate(ecosystem):
+            population_record[i][j] = species[1]
+        
+        ecosystem = simulate_1_gen(ecosystem, rng)
+    
+    plt.plot(population_record)
+
+    return population_record
 
 
 def simulate_1_gen(
@@ -41,7 +70,7 @@ def simulate_1_gen(
     # Method 3: 0.156, 0.150, 0.157
     
     # Create strat array -> [0, 0, 1, 2, 2, 2] means first 2 element are strat 0, next 1 strat 1 etc
-    strats = np.concat([np.full(species[1], i) for i, species in enumerate(ecosystem)])
+    # strats = np.concat([np.full(species[1], i) for i, species in enumerate(ecosystem)])
     # Get the plays for each individual, array is in order of species
     plays = np.concat([list(species[0].get_plays(species[1])) for species in ecosystem])
     
