@@ -18,7 +18,8 @@ def rps_strat_simulator(
     ecosystem = [
         [strategy.always_paper, 10000],
         [strategy.always_rock, 10000],
-        [strategy.always_scissor, 10000]
+        [strategy.always_scissor, 10000],
+        [strategy.equal, 10000]
     ]
 
     initial_pop = sum([species[1] for species in ecosystem])
