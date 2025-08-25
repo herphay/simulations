@@ -12,17 +12,17 @@ def main():
 
 
 def rps_strat_simulator(
-        generations: int = 50,
+        generations: int = 70,
         same_rng_seed: bool = True
     ) -> None:
     ecosystem = [
-        [strategy.always_paper, 10000],
         [strategy.always_rock, 10000],
+        [strategy.always_paper, 10000],
         [strategy.always_scissor, 10000],
         [strategy.equal, 10000]
     ]
 
-    initial_pop = sum([species[1] for species in ecosystem])
+    # initial_pop = sum([species[1] for species in ecosystem])
 
     # population record has col of species, and each row the pop of a generation
     population_record = np.zeros((generations, len(ecosystem)), dtype=int)
@@ -36,6 +36,7 @@ def rps_strat_simulator(
         ecosystem = simulate_1_gen(ecosystem, rng)
     
     plt.plot(population_record)
+    plt.legend([species[0].get_name() for species in ecosystem])
 
     return population_record
 
