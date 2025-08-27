@@ -60,4 +60,4 @@ class rp_12:
     
     @staticmethod
     def get_name():
-        return 'equal_chance'
+        return '1/3r,2/3p'
