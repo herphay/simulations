@@ -61,3 +61,18 @@ class rp_12:
     @staticmethod
     def get_name():
         return '1/3r,2/3p'
+
+
+class rs_12:
+    @staticmethod
+    def get_plays(pop_count):
+        rng = np.random.default_rng()
+        choice = rng.random(pop_count)
+        plays = np.full(pop_count, 'r')
+        plays[choice < 1/3] = 'r'
+        plays[choice > 1/3] = 's'
+        return ''.join(plays)
+    
+    @staticmethod
+    def get_name():
+        return '1/3r,2/3s'
