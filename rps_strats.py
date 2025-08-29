@@ -53,9 +53,9 @@ class rp_12:
     def get_plays(pop_count):
         rng = np.random.default_rng()
         choice = rng.random(pop_count)
-        plays = np.full(pop_count, 'r')
+        plays = np.full(pop_count, 'p')
         plays[choice < 1/3] = 'r'
-        plays[choice > 1/3] = 'p'
+        # plays[choice > 1/3] = 'p'
         return ''.join(plays)
     
     @staticmethod
@@ -68,9 +68,9 @@ class rs_12:
     def get_plays(pop_count):
         rng = np.random.default_rng()
         choice = rng.random(pop_count)
-        plays = np.full(pop_count, 'r')
+        plays = np.full(pop_count, 's')
         plays[choice < 1/3] = 'r'
-        plays[choice > 1/3] = 's'
+        # plays[choice > 1/3] = 's'
         return ''.join(plays)
     
     @staticmethod
