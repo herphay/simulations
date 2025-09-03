@@ -76,3 +76,19 @@ class rs_12:
     @staticmethod
     def get_name():
         return '1/3r,2/3s'
+    
+
+class gen_species:
+    @staticmethod
+    def get_plays(
+            r_affinity: np.ndarray,
+            p_affinity: np.ndarray,
+            s_affinity: np.ndarray,
+        ):
+        rng = np.random.default_rng()
+        choice = rng.random(r_affinity.size)
+        plays = np.full(r_affinity.size, 's')
+        plays[choice < r_affinity] = 'r'
+        plays[choice < p_affinity] = 'p'
+        # plays[choice > 1/3] = 's'
+        return ''.join(plays)
