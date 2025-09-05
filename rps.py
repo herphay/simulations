@@ -155,7 +155,8 @@ def rps_winner(
         
 def play_outcome_to_pop(
         results: np.ndarray,
-        method: str = 'const'
+        method: str = 'const',
+        reproduction_prob: list[float] = [0.95, 1, 0.05]
     ) -> np.ndarray:
     """
     Based on each individual's play outcome, determine how population change
@@ -165,6 +166,12 @@ def play_outcome_to_pop(
             results[results > 0] = 2
             results[results == 0] = 1
             results[results < 0] = 0
+            return results
+        case 'rand':
+            prob = np.random.default_rng().random(results.size)
+            results[(results > 0) & (prob < reproduction_prob[0])] = 2
+            results[(results == 0) & (prob < reproduction_prob[1])] = 1
+            results[(results < 0) & (prob < reproduction_prob[2])] = 0
             return results
         case _:
             raise ValueError('Invalid method')
