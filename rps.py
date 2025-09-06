@@ -45,6 +45,7 @@ def rps_strat_simulator(
 def simulate_1_gen(
         ecosystem: list[list],
         rng: np.random.Generator = None,
+        reproduction_method: str = 'const'
     ) -> list[list]:
     """
     Simulate 1 generation of competition among different RPS strategies
@@ -101,7 +102,7 @@ def simulate_1_gen(
     
     # Get the outcome array, which represents how much each individual propagate to the next gen
     # 0 mean the individual have 0 offspring, 1 means 1 offspring etc.
-    results = play_outcome_to_pop(results, method='const')
+    results = play_outcome_to_pop(results, method=reproduction_method)
     
     # Unshuffle the results to match the initial individual sequence
     results = results[unshuffle]
