@@ -81,14 +81,27 @@ class rs_12:
 class gen_species:
     @staticmethod
     def get_plays(
-            r_affinity: np.ndarray,
-            p_affinity: np.ndarray,
-            s_affinity: np.ndarray,
+            affinity: np.ndarray
         ):
+        """
+        affinity: np.ndarray
+            a 3xm array where m is the number of individuals in the population
+            1st row is the individual's probability to play rock, 2nd is paper, 3rd is scissors
+        """
         rng = np.random.default_rng()
-        choice = rng.random(r_affinity.size)
-        plays = np.full(r_affinity.size, 's')
-        plays[choice < r_affinity] = 'r'
-        plays[choice < p_affinity] = 'p'
+        choice = rng.random(affinity.shape[1])
+        plays = np.full(affinity.shape[1], 's')
+        plays[choice < affinity[0]] = 'r'
+        plays[choice > affinity[1]] = 'p'
         # plays[choice > 1/3] = 's'
         return ''.join(plays)
+    
+    @staticmethod
+    def validate_affinity(
+            affinity: np.ndarray
+        ):
+        """
+        Returns True if affinity is valid, otherwise False
+        """
+        total_prob = affinity.sum(axis=0)
+        return sum(abs(total_prob - 1) > 0.000001) == 0
