@@ -12,16 +12,18 @@ def main():
 
 
 def rps_strat_simulator(
-        generations: int = 50,
+        generations: int = 70,
         same_rng_seed: bool = True
     ) -> None:
     ecosystem = [
-        [strategy.always_paper, 10000],
         [strategy.always_rock, 10000],
-        [strategy.always_scissor, 10000]
+        [strategy.always_paper, 10000],
+        [strategy.always_scissor, 10000],
+        [strategy.rp_12, 10000],
+        [strategy.rs_12, 10000],
     ]
 
-    initial_pop = sum([species[1] for species in ecosystem])
+    # initial_pop = sum([species[1] for species in ecosystem])
 
     # population record has col of species, and each row the pop of a generation
     population_record = np.zeros((generations, len(ecosystem)), dtype=int)
@@ -35,6 +37,7 @@ def rps_strat_simulator(
         ecosystem = simulate_1_gen(ecosystem, rng)
     
     plt.plot(population_record)
+    plt.legend([species[0].get_name() for species in ecosystem])
 
     return population_record
 
@@ -42,6 +45,7 @@ def rps_strat_simulator(
 def simulate_1_gen(
         ecosystem: list[list],
         rng: np.random.Generator = None,
+        reproduction_method: str = 'const'
     ) -> list[list]:
     """
     Simulate 1 generation of competition among different RPS strategies
@@ -98,7 +102,7 @@ def simulate_1_gen(
     
     # Get the outcome array, which represents how much each individual propagate to the next gen
     # 0 mean the individual have 0 offspring, 1 means 1 offspring etc.
-    results = play_outcome_to_pop(results, method='const')
+    results = play_outcome_to_pop(results, method=reproduction_method)
     
     # Unshuffle the results to match the initial individual sequence
     results = results[unshuffle]
@@ -152,7 +156,8 @@ def rps_winner(
         
 def play_outcome_to_pop(
         results: np.ndarray,
-        method: str = 'const'
+        method: str = 'const',
+        reproduction_prob: list[float] = [0.95, 1, 0.05]
     ) -> np.ndarray:
     """
     Based on each individual's play outcome, determine how population change
@@ -162,6 +167,12 @@ def play_outcome_to_pop(
             results[results > 0] = 2
             results[results == 0] = 1
             results[results < 0] = 0
+            return results
+        case 'rand':
+            prob = np.random.default_rng().random(results.size)
+            results[(results > 0) & (prob < reproduction_prob[0])] = 2
+            results[(results == 0) & (prob < reproduction_prob[1])] = 1
+            results[(results < 0) & (prob < reproduction_prob[2])] = 0
             return results
         case _:
             raise ValueError('Invalid method')
