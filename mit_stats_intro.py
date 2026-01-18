@@ -660,7 +660,7 @@ def w3_C5_E2():
 def w3_s3_q1a(
         rate: float = 1,
         nsamples: int = 1000,
-        bin_width: float = 0.4
+        bin_width: float | None = None
     ) -> None:
     """
     Draw frequency histogram of an exponential distribution
@@ -670,6 +670,7 @@ def w3_s3_q1a(
     range: [0, inf)
     """
     rng = np.random.default_rng()
+    bin_width = 1 / rate / 3
 
     ### np exponential dist generator use SCALE instead of RATE ###
     # Scale is the inverse of rate -> scale = 1 / rate (rate is lambda)
@@ -722,22 +723,33 @@ def w3_s3_q2b(
         rate: float = 1,
         nsamples: int = 1000,
         n_to_avg: int = 2,
-        bin_width: float = 0.4,
+        bin_width: float | None = None,
         theo_point_count: int = 101
     ) -> None:
     rng = np.random.default_rng()
 
     exp_data = rng.exponential(1 / rate, size=nsamples * n_to_avg)
     exp_data = np.average(exp_data.reshape((nsamples, n_to_avg)), axis=1)
-    bins = np.arange(0, exp_data.max() + bin_width, bin_width)
 
+    # rate is interpreted as the amount of incidents per unit
+    # E.g. 10 cars passing per min, or 2 defect per meter
+    # Mean of the exp. distribution is the 1/rate, and the s.d. is 1/rate^2
+    # Mean of the average of N identical dist. is the mean of each dist.
+    # s.d. of the average of N identical dist. is then found using CLT
+    # CLT states that s.d. of the avg. is the s.d. of each dist / root of N
     mean_of_avg = 1 / rate
     std_of_avg = mean_of_avg / n_to_avg ** 0.5
 
+    if not bin_width:
+        bin_width = std_of_avg / 4
+    bins = np.arange(max(0, mean_of_avg - 4 * std_of_avg), 
+                     exp_data.max() + bin_width, bin_width)
+    
     theo_x_points = np.linspace(max(0, mean_of_avg - 4 * std_of_avg), 
                                 max(exp_data.max(), mean_of_avg + 4 * std_of_avg), 
                                 theo_point_count)
     
+    # Under CLT, the theoretical dist. of the avg. becomes a Normal dist.
     theo_density = math.e ** -(((theo_x_points - mean_of_avg) / std_of_avg) ** 2 / 2) / \
                    (std_of_avg * (2 * math.pi) ** 0.5)
     
@@ -762,6 +774,9 @@ def w3_pset3_data():
     # ~50% still dies within 15 months
     # So treatment is helping for 50% of the time with only 20% complete cure rate
     return data
+#%%
+
+
 #%%
 if __name__ == '__main__':
     main()
