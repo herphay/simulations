@@ -774,9 +774,41 @@ def w3_pset3_data():
     # ~50% still dies within 15 months
     # So treatment is helping for 50% of the time with only 20% complete cure rate
     return data
+
+
 #%%
+def w4_lec_bq1():
+    data = [1, 1.2, 1.3, 1.6, 1.6, 2.1, 2.2, 2.6, 
+            2.7, 3.1, 3.2, 3.4, 3.8, 3.9, 3.9]
+    
+    # plt.hist offers only left close bins
+    # use pd.cut to get bin count for right close bins
+    # rightclose_bin_count = pd.cut(data, np.arange(0, 4, 0.5), right=True).value_counts()
+    # rightclose_bin_count.plot(kind='bar')
+    bins_0 = np.arange(0, 4.1, 0.5)
+    bins_1 = [0, 1, 3, 4]
+
+    fig, axes = plt.subplots(3, 1)
+
+    axes[0].hist(data, bins_0, edgecolor='k')
+    axes[1].hist(data, bins_1, edgecolor='k')
+    axes[2].hist(data, bins_1, edgecolor='k', density=True)
+
+    # return rightclose_bin_count
 
 
+def w4_lec_extra1():
+    # (a)
+    x = norm.ppf([0.25, 0.5, 0.75])
+    print('Quantiles of Z at 0.25/0.5/0.75 are:', x)
+    # (b)
+    pts = np.arange(-4, 4, 0.05)
+    density = np.e ** (-pts ** 2 / 2) / (2 * np.pi) ** 0.5
+    plt.plot(pts, density)
+    # (c)
+    print('Cumulative prob at quantiles are:', norm.cdf(x))
+
+    
 #%%
 if __name__ == '__main__':
     main()
