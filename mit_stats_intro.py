@@ -808,7 +808,38 @@ def w4_lec_extra1():
     # (c)
     print('Cumulative prob at quantiles are:', norm.cdf(x))
 
+
+def w4_pset4_2():
+    # (a) 50% will vote for Alexandra, poll of 400, prob of >52.5% vote A
+    print('Prob of Alexandra getting >52.5% =', 1 - norm.cdf(0.525, 0.5, 1 / 80))
+    # (b) 
+    print('Prob of others getting <31% =', 1 - norm.cdf(0.31, 0.3, 0.3 * 0.7 / 20))
     
+
+def w4_pset4_3():
+    # 1000 orders, each rounded to nearest 5th cent (.57 to .55, .58 to .6)
+    # Prob of daily rounding error being >100 or <-100 cents
+    # mean = 0, var = 2 for single order, discrete uniform dist
+    # mean = 0, var = 2000 for 1000 order, normal dist
+    print('Probability of >100 or <-100 =', 2 * norm.cdf(-100.5, 0, 2000 ** 0.5))
+
+    # bonus part to simulate
+    def rounding_sim(orders: int = 1000, ntrials: int = 10_000):
+        rng = np.random.default_rng()
+        roundings = rng.integers(-2, 3, (orders, ntrials))
+        roundings = abs(roundings.sum(axis=0))
+        exceed_pct = (roundings > 100).sum() / ntrials
+        return exceed_pct
+    
+    for _ in range(3):
+        print(rounding_sim())
+
+
+def w4_pset4_6():
+    # IQ has mean=100, s.d.=15. Find P(IQ>160)
+    print('IQ >160 has probability =', 1 - norm.cdf(160, 100, 15))
+    # mod IQ with norm dist, mean=0, s.d.=3^0.5
+    print('mod_IQ P(>4 s.d.) =', 1 - norm.cdf(4 * 3 ** 0.5, 0, 3 ** 0.5))
 #%%
 if __name__ == '__main__':
     main()
