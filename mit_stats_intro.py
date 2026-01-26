@@ -840,6 +840,16 @@ def w4_pset4_6():
     print('IQ >160 has probability =', 1 - norm.cdf(160, 100, 15))
     # mod IQ with norm dist, mean=0, s.d.=3^0.5
     print('mod_IQ P(>4 s.d.) =', 1 - norm.cdf(4 * 3 ** 0.5, 0, 3 ** 0.5))
+
+
+def w4_pset4_6_Tdist(
+        edge: float = 3 ** 0.5 * 4
+    ):
+    """Plot t distribution"""
+    # t dist. have s.d. = 3 ** 0.5
+    x = np.linspace(-edge, edge, 1000)
+    fx = 2 / 3 / np.pi * (1 + x ** 2 / 3) ** -2
+    plt.plot(x, fx)
 #%%
 if __name__ == '__main__':
     main()
