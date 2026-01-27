@@ -4,7 +4,7 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.axes
 
-from scipy.stats import norm
+import scipy.stats as scistat
 
 from collections.abc import Iterable
 from collections import Counter
@@ -749,7 +749,7 @@ def w3_s3_q2b(
                                 max(exp_data.max(), mean_of_avg + 4 * std_of_avg), 
                                 theo_point_count)
     
-    # Under CLT, the theoretical dist. of the avg. becomes a Normal dist.
+    # Under CLT, the theoretical dist. of the avg. becomes a normal dist.
     theo_density = math.e ** -(((theo_x_points - mean_of_avg) / std_of_avg) ** 2 / 2) / \
                    (std_of_avg * (2 * math.pi) ** 0.5)
     
@@ -799,21 +799,21 @@ def w4_lec_bq1():
 
 def w4_lec_extra1():
     # (a)
-    x = norm.ppf([0.25, 0.5, 0.75])
+    x = scistat.norm.ppf([0.25, 0.5, 0.75])
     print('Quantiles of Z at 0.25/0.5/0.75 are:', x)
     # (b)
     pts = np.arange(-4, 4, 0.05)
     density = np.e ** (-pts ** 2 / 2) / (2 * np.pi) ** 0.5
     plt.plot(pts, density)
     # (c)
-    print('Cumulative prob at quantiles are:', norm.cdf(x))
+    print('Cumulative prob at quantiles are:', scistat.norm.cdf(x))
 
 
 def w4_pset4_2():
     # (a) 50% will vote for Alexandra, poll of 400, prob of >52.5% vote A
-    print('Prob of Alexandra getting >52.5% =', 1 - norm.cdf(0.525, 0.5, 1 / 80))
+    print('Prob of Alexandra getting >52.5% =', 1 - scistat.norm.cdf(0.525, 0.5, 1 / 40))
     # (b) 
-    print('Prob of others getting <31% =', 1 - norm.cdf(0.31, 0.3, 0.3 * 0.7 / 20))
+    print('Prob of others getting <31% =', scistat.norm.cdf(0.31, 0.3, (0.3 * 0.7 / 400) ** 0.5))
     
 
 def w4_pset4_3():
@@ -821,7 +821,7 @@ def w4_pset4_3():
     # Prob of daily rounding error being >100 or <-100 cents
     # mean = 0, var = 2 for single order, discrete uniform dist
     # mean = 0, var = 2000 for 1000 order, normal dist
-    print('Probability of >100 or <-100 =', 2 * norm.cdf(-100.5, 0, 2000 ** 0.5))
+    print('Probability of >100 or <-100 =', 2 * scistat.norm.cdf(-100, 0, 2000 ** 0.5))
 
     # bonus part to simulate
     def rounding_sim(orders: int = 1000, ntrials: int = 10_000):
@@ -837,9 +837,28 @@ def w4_pset4_3():
 
 def w4_pset4_6():
     # IQ has mean=100, s.d.=15. Find P(IQ>160)
-    print('IQ >160 has probability =', 1 - norm.cdf(160, 100, 15))
+    print('IQ >160 has probability =', scistat.norm.sf(160, 100, 15))
     # mod IQ with norm dist, mean=0, s.d.=3^0.5
-    print('mod_IQ P(>4 s.d.) =', 1 - norm.cdf(4 * 3 ** 0.5, 0, 3 ** 0.5))
+    print('norm mod_IQ P(>4 s.d.) =', scistat.norm.sf(4 * 3 ** 0.5, 0, 3 ** 0.5))
+    # mod IQ with t dist, mean=0, s.d.=3^0.5
+    # scipy t dist can takes: x value to check survival func (1 - cdf(x)),
+    # degree of freedom (df=3 implies s.d.=3**0.5)
+    # loc=0 default -> mean
+    # scale=1 default -> not s.d. unlike norm, here it scales the s.d.
+    # scipy calc s.d. by: s.d. = scale * (df / (df - 2)) ** 0.5
+    print('t mod_IQ P(>4 s.d.) =', scistat.t.sf(4 * 3 ** 0.5, df=3))
+
+    # (d)(i) norm vs t-3 tail probabilities
+    print('Normal(0, 3**0.5) @ 20, 40, 200:', 
+          '\n', scistat.norm.sf(20, loc=0, scale=3 ** 0.5),
+          '\n', scistat.norm.sf(40, loc=0, scale=3 ** 0.5),
+          '\n', scistat.norm.sf(200, loc=0, scale=3 ** 0.5))
+    
+    print('T dist, 3df @ 20, 40, 200:', 
+          '\n', scistat.t.sf(20, df=3),
+          '\n', scistat.t.sf(40, df=3),
+          '\n', scistat.t.sf(200, df=3))
+
 
 
 def w4_pset4_6_Tdist(
@@ -848,8 +867,10 @@ def w4_pset4_6_Tdist(
     """Plot t distribution"""
     # t dist. have s.d. = 3 ** 0.5
     x = np.linspace(-edge, edge, 1000)
-    fx = 2 / 3 / np.pi * (1 + x ** 2 / 3) ** -2
-    plt.plot(x, fx)
+    t_fx = 2 / 3 / np.pi * (1 + x ** 2 / 3) ** - 2
+    normal_fx = 1 / 3 ** 0.5 / (2 * np.pi) ** 0.5 * np.e ** (- x ** 2 / 6) 
+    plt.plot(x, t_fx)
+    plt.plot(x, normal_fx)
 #%%
 if __name__ == '__main__':
     main()
