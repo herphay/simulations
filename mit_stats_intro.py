@@ -4,7 +4,7 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.axes
 
-from scipy.stats import norm
+import scipy.stats as scistat
 
 from collections.abc import Iterable
 from collections import Counter
@@ -660,7 +660,7 @@ def w3_C5_E2():
 def w3_s3_q1a(
         rate: float = 1,
         nsamples: int = 1000,
-        bin_width: float = 0.4
+        bin_width: float | None = None
     ) -> None:
     """
     Draw frequency histogram of an exponential distribution
@@ -670,6 +670,7 @@ def w3_s3_q1a(
     range: [0, inf)
     """
     rng = np.random.default_rng()
+    bin_width = 1 / rate / 3
 
     ### np exponential dist generator use SCALE instead of RATE ###
     # Scale is the inverse of rate -> scale = 1 / rate (rate is lambda)
@@ -722,22 +723,33 @@ def w3_s3_q2b(
         rate: float = 1,
         nsamples: int = 1000,
         n_to_avg: int = 2,
-        bin_width: float = 0.4,
+        bin_width: float | None = None,
         theo_point_count: int = 101
     ) -> None:
     rng = np.random.default_rng()
 
     exp_data = rng.exponential(1 / rate, size=nsamples * n_to_avg)
     exp_data = np.average(exp_data.reshape((nsamples, n_to_avg)), axis=1)
-    bins = np.arange(0, exp_data.max() + bin_width, bin_width)
 
+    # rate is interpreted as the amount of incidents per unit
+    # E.g. 10 cars passing per min, or 2 defect per meter
+    # Mean of the exp. distribution is the 1/rate, and the s.d. is 1/rate^2
+    # Mean of the average of N identical dist. is the mean of each dist.
+    # s.d. of the average of N identical dist. is then found using CLT
+    # CLT states that s.d. of the avg. is the s.d. of each dist / root of N
     mean_of_avg = 1 / rate
     std_of_avg = mean_of_avg / n_to_avg ** 0.5
 
+    if not bin_width:
+        bin_width = std_of_avg / 4
+    bins = np.arange(max(0, mean_of_avg - 4 * std_of_avg), 
+                     exp_data.max() + bin_width, bin_width)
+    
     theo_x_points = np.linspace(max(0, mean_of_avg - 4 * std_of_avg), 
                                 max(exp_data.max(), mean_of_avg + 4 * std_of_avg), 
                                 theo_point_count)
     
+    # Under CLT, the theoretical dist. of the avg. becomes a normal dist.
     theo_density = math.e ** -(((theo_x_points - mean_of_avg) / std_of_avg) ** 2 / 2) / \
                    (std_of_avg * (2 * math.pi) ** 0.5)
     
@@ -762,6 +774,103 @@ def w3_pset3_data():
     # ~50% still dies within 15 months
     # So treatment is helping for 50% of the time with only 20% complete cure rate
     return data
+
+
+#%%
+def w4_lec_bq1():
+    data = [1, 1.2, 1.3, 1.6, 1.6, 2.1, 2.2, 2.6, 
+            2.7, 3.1, 3.2, 3.4, 3.8, 3.9, 3.9]
+    
+    # plt.hist offers only left close bins
+    # use pd.cut to get bin count for right close bins
+    # rightclose_bin_count = pd.cut(data, np.arange(0, 4, 0.5), right=True).value_counts()
+    # rightclose_bin_count.plot(kind='bar')
+    bins_0 = np.arange(0, 4.1, 0.5)
+    bins_1 = [0, 1, 3, 4]
+
+    fig, axes = plt.subplots(3, 1)
+
+    axes[0].hist(data, bins_0, edgecolor='k')
+    axes[1].hist(data, bins_1, edgecolor='k')
+    axes[2].hist(data, bins_1, edgecolor='k', density=True)
+
+    # return rightclose_bin_count
+
+
+def w4_lec_extra1():
+    # (a)
+    x = scistat.norm.ppf([0.25, 0.5, 0.75])
+    print('Quantiles of Z at 0.25/0.5/0.75 are:', x)
+    # (b)
+    pts = np.arange(-4, 4, 0.05)
+    density = np.e ** (-pts ** 2 / 2) / (2 * np.pi) ** 0.5
+    plt.plot(pts, density)
+    # (c)
+    print('Cumulative prob at quantiles are:', scistat.norm.cdf(x))
+
+
+def w4_pset4_2():
+    # (a) 50% will vote for Alexandra, poll of 400, prob of >52.5% vote A
+    print('Prob of Alexandra getting >52.5% =', 1 - scistat.norm.cdf(0.525, 0.5, 1 / 40))
+    # (b) 
+    print('Prob of others getting <31% =', scistat.norm.cdf(0.31, 0.3, (0.3 * 0.7 / 400) ** 0.5))
+    
+
+def w4_pset4_3():
+    # 1000 orders, each rounded to nearest 5th cent (.57 to .55, .58 to .6)
+    # Prob of daily rounding error being >100 or <-100 cents
+    # mean = 0, var = 2 for single order, discrete uniform dist
+    # mean = 0, var = 2000 for 1000 order, normal dist
+    print('Probability of >100 or <-100 =', 2 * scistat.norm.cdf(-100, 0, 2000 ** 0.5))
+
+    # bonus part to simulate
+    def rounding_sim(orders: int = 1000, ntrials: int = 10_000):
+        rng = np.random.default_rng()
+        roundings = rng.integers(-2, 3, (orders, ntrials))
+        roundings = abs(roundings.sum(axis=0))
+        exceed_pct = (roundings > 100).sum() / ntrials
+        return exceed_pct
+    
+    for _ in range(3):
+        print(rounding_sim())
+
+
+def w4_pset4_6():
+    # IQ has mean=100, s.d.=15. Find P(IQ>160)
+    print('IQ >160 has probability =', scistat.norm.sf(160, 100, 15))
+    # mod IQ with norm dist, mean=0, s.d.=3^0.5
+    print('norm mod_IQ P(>4 s.d.) =', scistat.norm.sf(4 * 3 ** 0.5, 0, 3 ** 0.5))
+    # mod IQ with t dist, mean=0, s.d.=3^0.5
+    # scipy t dist can takes: x value to check survival func (1 - cdf(x)),
+    # degree of freedom (df=3 implies s.d.=3**0.5)
+    # loc=0 default -> mean
+    # scale=1 default -> not s.d. unlike norm, here it scales the s.d.
+    # scipy calc s.d. by: s.d. = scale * (df / (df - 2)) ** 0.5
+    print('t mod_IQ P(>4 s.d.) =', scistat.t.sf(4 * 3 ** 0.5, df=3))
+
+    # (d)(i) norm vs t-3 tail probabilities
+    print('Normal(0, 3**0.5) @ 20, 40, 200:', 
+          '\n', scistat.norm.sf(20, loc=0, scale=3 ** 0.5),
+          '\n', scistat.norm.sf(40, loc=0, scale=3 ** 0.5),
+          '\n', scistat.norm.sf(200, loc=0, scale=3 ** 0.5))
+    
+    print('T dist, 3df @ 20, 40, 200:', 
+          '\n', scistat.t.sf(20, df=3),
+          '\n', scistat.t.sf(40, df=3),
+          '\n', scistat.t.sf(200, df=3))
+
+
+
+def w4_pset4_6_Tdist(
+        edge: float = 3 ** 0.5 * 4
+    ):
+    """Plot t distribution"""
+    # t dist. have s.d. = 3 ** 0.5
+    x = np.linspace(-edge, edge, 1000)
+    t_fx = 2 / 3 / np.pi * (1 + x ** 2 / 3) ** - 2
+    normal_fx = 1 / 3 ** 0.5 / (2 * np.pi) ** 0.5 * np.e ** (- x ** 2 / 6) 
+    plt.plot(x, t_fx)
+    plt.plot(x, normal_fx)
 #%%
 if __name__ == '__main__':
     main()
