@@ -871,6 +871,27 @@ def w4_pset4_6_Tdist(
     normal_fx = 1 / 3 ** 0.5 / (2 * np.pi) ** 0.5 * np.e ** (- x ** 2 / 6) 
     plt.plot(x, t_fx)
     plt.plot(x, normal_fx)
+
+
+#%%
+def w5_lec_binom(
+        n: int = 100,
+        p: float = 0.5,
+        x: int = 50
+    ) -> float:
+    return math.comb(n, x) * p ** x * (1 - p) ** (n - x)
+
+
+def w5_lec_binom_cdf(
+        n: int = 100,
+        p: float = 0.5,
+        x: int = 50
+    ) -> float:
+    cum_prob = 0
+    for i in range(x + 1):
+        cum_prob += w5_lec_binom(n, p, i)
+    # print(cum_prob - scistat.binom.cdf(x, n, p))
+    return cum_prob
 #%%
 if __name__ == '__main__':
     main()
