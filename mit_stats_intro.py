@@ -892,6 +892,32 @@ def w5_lec_binom_cdf(
         cum_prob += w5_lec_binom(n, p, i)
     # print(cum_prob - scistat.binom.cdf(x, n, p))
     return cum_prob
+
+def w5_lec_qn_sample():
+    """Useful chatgpt solving method"""
+    import sympy as sp
+
+    x, y = sp.symbols('x y')
+    f = 2*x**3 + 2*y**3
+
+    # Verify integration over [0, 1] x [0, 1]
+    total_prob = sp.integrate(f, (x, 0, 1), (y, 0, 1))
+    print(f"{total_prob=}")
+
+    # Means
+    ex = sp.integrate(x * f, (x, 0, 1), (y, 0, 1))
+    ey = sp.integrate(y * f, (x, 0, 1), (y, 0, 1))
+
+    # E[XY]
+    exy = sp.integrate(x * y * f, (x, 0, 1), (y, 0, 1))
+
+    # Covariance
+    cov = exy - ex * ey
+
+    print(f"{ex=}")
+    print(f"{ey=}")
+    print(f"{exy=}")
+    print(f"{cov=}")
 #%%
 if __name__ == '__main__':
     main()
