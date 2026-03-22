@@ -871,6 +871,160 @@ def w4_pset4_6_Tdist(
     normal_fx = 1 / 3 ** 0.5 / (2 * np.pi) ** 0.5 * np.e ** (- x ** 2 / 6) 
     plt.plot(x, t_fx)
     plt.plot(x, normal_fx)
+
+
+#%%
+def w5_lec_binom(
+        n: int = 100,
+        p: float = 0.5,
+        x: int = 50
+    ) -> float:
+    return math.comb(n, x) * p ** x * (1 - p) ** (n - x)
+
+
+def w5_lec_binom_cdf(
+        n: int = 100,
+        p: float = 0.5,
+        x: int = 50
+    ) -> float:
+    cum_prob = 0
+    for i in range(x + 1):
+        cum_prob += w5_lec_binom(n, p, i)
+    # print(cum_prob - scistat.binom.cdf(x, n, p))
+    return cum_prob
+
+def w5_lec_qn_sample():
+    """Useful chatgpt solving method"""
+    # import sympy as sp
+
+    # x, y = sp.symbols('x y')
+    # f = 2*x**3 + 2*y**3
+
+    # # Verify integration over [0, 1] x [0, 1]
+    # total_prob = sp.integrate(f, (x, 0, 1), (y, 0, 1))
+    # print(f"{total_prob=}")
+
+    # # Means
+    # ex = sp.integrate(x * f, (x, 0, 1), (y, 0, 1))
+    # ey = sp.integrate(y * f, (x, 0, 1), (y, 0, 1))
+
+    # # E[XY]
+    # exy = sp.integrate(x * y * f, (x, 0, 1), (y, 0, 1))
+
+    # # Covariance
+    # cov = exy - ex * ey
+
+    # print(f"{ex=}")
+    # print(f"{ey=}")
+    # print(f"{exy=}")
+    # print(f"{cov=}")
+
+
+def w5_s4_q1a(
+        ntgt: int = 10,
+        nalone: int = 10,
+        ntrials: int = 1_000_000,
+        print_results: bool = True,
+        return_results: bool = False
+    ):
+    """
+    A and B play roulette together ntgt times
+    B then plays alone nalone times
+    Roulette have 18 red, 18 black, 2 green.
+    A & B always bet 1 on red. Win you double, loose you lose the bet
+    """
+    rng = np.random.default_rng()
+    # Simulate [0,1) and < 18/38 wins
+    payout = rng.random((ntrials, ntgt + nalone))
+    payout = np.where(payout < 18 / 38, 1, -1)
+    A = payout[:, :ntgt].sum(axis=1)
+    B = payout.sum(axis=1)
+
+    mean_A = np.mean(A)
+    mean_B = np.mean(B)
+    cov = np.cov(A, B)
+    var_A = cov[0, 0]
+    var_B = cov[1, 1]
+    cov_AB = cov[1, 0]
+    cor_AB = np.corrcoef(A, B)[1, 0]
+
+    if print_results:
+        print(f'A plays {ntgt} times, B plays {ntgt + nalone} times.')
+        print(f'Over {ntrials} sims:')
+        print(f'Mean winning of A: {mean_A}  ||  Variance: {var_A}')
+        print(f'Mean winning of B: {mean_B}  ||  Variance: {var_B}')
+        print(f'Covariance(A, B): {cov_AB}  || Correlation(A, B): {cor_AB}')
+        # theoretical
+        # Single trial
+        mean_X = 18/38 - 20/38
+        var_X = 1 - mean_X ** 2
+        cov_theo = ntgt * var_X
+        cor_theo = (ntgt / (ntgt + nalone)) ** 0.5
+        print(f'Theoretical single game mean: {mean_X}  ||  Variance: {var_X}')
+        print(f'Theoretical Covariance(A, B): {cov_theo}  || Correlation(A, B): {cor_theo}')
+    
+    if return_results:
+        return cov_AB, cor_AB
+
+
+def w5_s4_q1b(
+        nalone_limit: int = 41
+    ):
+    """
+    How cov and cor varies as nalone increase
+    """
+    x = np.arange(nalone_limit)
+    covs = np.array([])
+    cors = np.array([])
+    for nalone in x:
+        cov, cor = w5_s4_q1a(nalone=nalone, ntrials=1_000_000, print_results=False, return_results=True)
+        covs = np.append(covs, cov)
+        cors = np.append(cors, cor)
+    
+    fig, axs = plt.subplots(2, 1)
+
+    axs[0].plot(x, covs)
+    axs[0].set_title('Covaraince as nalone increase')
+    axs[0].set_xlabel('nalone')
+    axs[0].set_ylabel('Covariance')
+
+    axs[1].plot(x, cors)
+    axs[1].set_title('Correlation as nalone increase')
+    axs[1].set_xlabel('nalone')
+    axs[1].set_ylabel('Correlation')
+
+    plt.tight_layout()
+
+
+def w5_s4_q2(
+        n_bets: int = 100,
+        ntrials: int = 100_000
+    ):
+    # theoretical single trial
+    mean = 18 / 38 - 20 / 38
+    var = 1 - mean ** 2
+    sd = var ** 0.5
+
+    # CLT as n_bets increase sum approach a normal dist X~N(n*mean, n*var)
+    N_mean = n_bets * mean
+    N_sd = sd * n_bets ** 0.5
+    axis = np.linspace(N_mean - 4 * N_sd, N_mean + 4 * N_sd, 1000)
+
+    y = 1 / N_sd / (2 * math.pi) ** 0.5 * math.e ** (-((axis - N_mean) / N_sd) ** 2 / 2)
+
+    # simulate the bets
+    rng = np.random.default_rng()
+    payout = rng.random((ntrials, n_bets))
+    payout = np.where(payout < 18 / 38, 1, -1)
+    
+    payout = payout.sum(axis=1)
+
+    nbin = np.arange(payout.min() - 1, payout.max() + 3, 2)
+    
+    plt.hist(payout, bins=nbin, density=True)
+    plt.plot(axis, y)
+
+
 #%%
 if __name__ == '__main__':
     main()
