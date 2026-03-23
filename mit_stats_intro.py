@@ -1025,6 +1025,44 @@ def w5_s4_q2(
     plt.plot(axis, y)
 
 
+def w7_c11_bayesian_updating(
+        prior: np.ndarray = np.array([0.4, 0.4, 0.2]),
+        likelihood_h: np.ndarray = np.array([0.5, 0.6, 0.9]),
+        trials: int = 300
+    ) -> None:
+    """
+    prior: the base probability set for each of the possible hypothesis
+    likelihood_h: the probability of getting heads for each hypothesis
+    tials: the number of trials to run the experiment for
+
+    Simulates if each of the 3 types of coins are chosen, each coin have likelihood_h probability of
+    flipping heads. 
+    """
+    rng = np.random.default_rng()
+    # Get rolls for each of the dice trials time
+    rolls = rng.random((3, 1, trials))
+
+    # Get the roll results the attach the equivalent likelihood -> 3x3xn
+    likelihood_h = likelihood_h.reshape((3,1))
+    likelihoods = np.where(rolls < likelihood_h.reshape(3, 1, 1), likelihood_h, 1 - likelihood_h)
+
+    # Attach prior to get numerator chain
+    prior = np.tile(prior.reshape((3, 1)), (3, 1, 1))
+    numerators = np.concatenate((prior, likelihoods), axis=2)
+    # posterior is then the cumulative product of all the prior & likelihood and normalized
+    numerators = numerators.cumprod(axis=2)
+    posterior = numerators / numerators.sum(axis=1).reshape((3, 1, trials + 1))
+
+    # Plot results
+    labels = [f'{likelihood_h[0][0]}', f'{likelihood_h[1][0]}', f'{likelihood_h[2][0]}']
+    fig, ax = plt.subplots(3, 1)
+    for i in range(3):
+        ax[i].plot(posterior[i].T, label=labels)
+        ax[i].legend()
+    plt.tight_layout()
+    # print(posterior[:, :, -1])
+
+
 #%%
 if __name__ == '__main__':
     main()
