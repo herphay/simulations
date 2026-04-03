@@ -1063,6 +1063,76 @@ def w7_c11_bayesian_updating(
     # print(posterior[:, :, -1])
 
 
+class dice_data:
+    def __init__(
+            self, 
+                 dice: list[int] = [4, 6, 8, 12, 20], 
+                 prior: list[float] = [0.2] * 5
+        ):
+        self.hypothesis = dice
+        self.prior = prior
+
+    def __repr__(self):
+        identity = f'{len(self.hypothesis)} dice in set with sides: ' +\
+                   f'{", ".join(self.hypothesis.astype(str))}\n' +\
+                   f'Corresponding prior probabilities of {", ".join(self.prior.astype(str))}\n' +\
+                   f'Likelihood table for the dice:\n' +\
+                   pd.DataFrame(self._likelihood, 
+                                index=self._hypothesis, 
+                                columns=np.arange(1, self._hypothesis.max() + 1)).\
+                                    to_string(line_width=80)
+
+        return identity
+    
+    @property
+    def hypothesis(self):
+        return self._hypothesis
+
+    @hypothesis.setter
+    def hypothesis(self, dice):
+        self._hypothesis = np.array(dice)
+        self._likelihood_setter()
+    
+    @property
+    def prior(self):
+        return self._prior
+
+    @prior.setter
+    def prior(self, prior):
+        if sum(prior) != 1:
+            raise ValueError('Priors must sum up to 1')
+        self._prior = np.array(prior)
+
+    @property
+    def likelihood(self):
+        return self._likelihood
+    
+    def _likelihood_setter(self):
+        # create nx1 array for the prob. of rolling any number for each x-sided die
+        p_anynumber = 1 / self._hypothesis[:, np.newaxis] 
+
+        # create n x max_side array (True for within a die's range, False for outside of it)
+        # np.newaxis works like None -> create a new axis in specified location.
+        # So for 3, array indexed [:, np.newaxis], it becomes 3x1
+        mask = np.arange(self._hypothesis.max()) < self._hypothesis[:, np.newaxis]
+        
+        # Create the final likelihood table
+        self._likelihood = np.where(mask, p_anynumber, 0)
+
+
+def w7_s5_q1b(
+        dice: list[int] = [4, 6, 8, 12, 20], 
+        prior: list[float] = [0.2] * 5,
+        chosen: int = 8,
+        plot_posteriors: bool = True,
+        plot_ind_posterior: bool = True,
+    ):
+    """
+    Select 1 specific die, simulate it's rolls and plot out the posterior probabilities
+    """
+    ...
+
+
 #%%
 if __name__ == '__main__':
     main()
