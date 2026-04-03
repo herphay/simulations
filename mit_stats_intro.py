@@ -1121,16 +1121,51 @@ class dice_data:
 
 
 def w7_s5_q1b(
-        dice: list[int] = [4, 6, 8, 12, 20], 
+        dice_sides: list[int] = [4, 6, 8, 12, 20], 
         prior: list[float] = [0.2] * 5,
         chosen: int = 8,
+        nrolls: int = 8,
         plot_posteriors: bool = True,
-        plot_ind_posterior: bool = True,
+        plot_ind_posterior: bool = False,
+        return_data: bool = False
     ):
     """
     Select 1 specific die, simulate it's rolls and plot out the posterior probabilities
     """
-    ...
+    dice = dice_data(dice=dice_sides, prior=prior)
+    rng = np.random.default_rng()
+
+    # roll the dice
+    rolls = rng.integers(chosen, size=nrolls)
+
+    # get the corresponding likelihood for each roll
+    likelihoods = dice.likelihood[:, rolls] # likelihood is indexed by column of each roll
+    numerators = np.concat([dice.prior[:, None], likelihoods], axis=1) 
+    numerators = numerators.cumprod(axis=1)
+    posteriors = numerators / numerators.sum(axis=0)
+
+    if plot_posteriors:
+        x_labels = ['prior'] + [str(i) for i in range(1, nrolls + 1)]
+        stacking = np.zeros(nrolls + 1)
+        for i in range(len(dice_sides)):
+            print(x_labels)
+            plt.bar(x_labels, posteriors[i], bottom=stacking, label=f'D{dice_sides[i]}')
+            stacking += posteriors[i]
+        
+        plt.legend()
+        plt.xlabel('rolls')
+        plt.ylabel('Probability')
+        plt.tight_layout()
+        plt.show()
+    
+    if plot_ind_posterior:
+        dice_names = [f'D{i}' for i in dice_sides]
+        for i in range(nrolls + 1):
+            plt.bar(dice_names, posteriors[:, i])
+            plt.show()
+    
+    if return_data:
+        return posteriors
 
 
 #%%
