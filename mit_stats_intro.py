@@ -1066,32 +1066,46 @@ def w7_c11_bayesian_updating(
 class dice_data:
     def __init__(
             self, 
-                 dice: list[int] = [4, 6, 8, 12, 20], 
-                 prior: list[float] = [0.2] * 5
+            dice: list[int] = [4, 6, 8, 12, 20], 
+            prior: list[float] = [0.2] * 5,
+            censored: bool = False
         ):
-        self.hypothesis = dice
+        self.hypothesis = dice, censored
         self.prior = prior
+        self.censored = censored
 
     def __repr__(self):
+        if self.censored:
+            cols = [0, 1]
+        else:
+            cols = np.arange(1, self.likelihood.shape[1] + 1)
         identity = f'{len(self.hypothesis)} dice in set with sides: ' +\
                    f'{", ".join(self.hypothesis.astype(str))}\n' +\
                    f'Corresponding prior probabilities of {", ".join(self.prior.astype(str))}\n' +\
                    f'Likelihood table for the dice:\n' +\
                    pd.DataFrame(self._likelihood, 
                                 index=self._hypothesis, 
-                                columns=np.arange(1, self._hypothesis.max() + 1)).\
+                                columns=cols).\
                                     to_string(line_width=80)
 
         return identity
     
     @property
+    def censored(self):
+        return self._censored
+    
+    @censored.setter
+    def censored(self, censor):
+        self._censored = censor
+
+    @property
     def hypothesis(self):
         return self._hypothesis
 
     @hypothesis.setter
-    def hypothesis(self, dice):
-        self._hypothesis = np.array(dice)
-        self._likelihood_setter()
+    def hypothesis(self, composite):
+        self._hypothesis = np.array(composite[0])
+        self._likelihood_setter(composite[1])
     
     @property
     def prior(self):
@@ -1107,17 +1121,21 @@ class dice_data:
     def likelihood(self):
         return self._likelihood
     
-    def _likelihood_setter(self):
+    def _likelihood_setter(self, censored):
         # create nx1 array for the prob. of rolling any number for each x-sided die
         p_anynumber = 1 / self._hypothesis[:, np.newaxis] 
 
         # create n x max_side array (True for within a die's range, False for outside of it)
         # np.newaxis works like None -> create a new axis in specified location.
         # So for 3, array indexed [:, np.newaxis], it becomes 3x1
-        mask = np.arange(self._hypothesis.max()) < self._hypothesis[:, np.newaxis]
-        
-        # Create the final likelihood table
-        self._likelihood = np.where(mask, p_anynumber, 0)
+        if not censored:
+            mask = np.arange(self._hypothesis.max()) < self._hypothesis[:, np.newaxis]
+            
+            # Create the final likelihood table
+            self._likelihood = np.where(mask, p_anynumber, 0)
+        else:
+            self._likelihood = np.concat([1 - p_anynumber, p_anynumber], axis=1)
+
 
 
 def w7_s5_q1b(
@@ -1148,7 +1166,6 @@ def w7_s5_q1b(
         x_labels = ['prior'] + [str(i) for i in range(1, nrolls + 1)]
         stacking = np.zeros(nrolls + 1)
         for i in range(len(dice_sides)):
-            print(x_labels)
             plt.bar(x_labels, posteriors[i], bottom=stacking, label=f'D{dice_sides[i]}')
             stacking += posteriors[i]
         
@@ -1168,6 +1185,55 @@ def w7_s5_q1b(
         return posteriors
 
 
+def w7_s5_q1c():
+    w7_s5_q1b(prior=[0.2] * 5, nrolls=20)
+    w7_s5_q1b(prior=[0.001, 0.001, 0.001, 0.001, 0.996], nrolls=20)
+
+
+def w7_s5_q1d():
+    w7_s5_q1b(prior=[0.25, 0.25, 0, 0.25, 0.25], nrolls=20)
+
+
+def w7_s5_q2a(
+        dice_sides: list[int] = [4, 6, 8, 12, 20], 
+        prior: list[float] = [0.2] * 5,
+        nrolls: int = 30,
+        return_data: bool = False
+    ):
+    """
+    Data is censored, data is 1 if roll is 1, 0 otherwise
+    """
+    dice = dice_data(dice=dice_sides, prior=prior, censored=True)
+    rng = np.random.default_rng()
+
+    # Choose a die, then get its probability of getting 1
+    chosen = rng.integers(dice.hypothesis.size)
+    p1 = dice.likelihood[chosen][1]
+
+    # generates which rolls get 1 which dont
+    rolls = (rng.random(size=nrolls) <= p1).astype(int)
+    likelihoods = dice.likelihood[:, rolls]
+    numerator = np.concat([dice.prior[:, np.newaxis], likelihoods], axis=1)
+    numerator = numerator.cumprod(axis=1)
+    posteriors = numerator / numerator.sum(axis=0)
+
+    x_labels = ['prior'] + [str(i) for i in range(1, nrolls + 1)]
+    stacking = np.zeros(nrolls + 1)
+    for i in range(dice.prior.size):
+        plt.bar(x_labels, posteriors[i], bottom=stacking, label=f'D{dice_sides[i]}')
+        stacking += posteriors[i]
+    
+    plt.legend()
+    plt.xlabel('rolls')
+    plt.ylabel('Probability')
+    plt.title(f'Posterior probabilities with censored data. Chosen dice: D{dice_sides[chosen]}')
+    plt.tight_layout()
+    plt.show()
+
+    if return_data:
+        return posteriors
+
+    
 #%%
 if __name__ == '__main__':
     main()
