@@ -1234,6 +1234,134 @@ def w7_s5_q2a(
         return posteriors
 
     
+def w8_s6_q0(
+        ntrials: int = 10_000
+    ):
+    """
+    Histogram of 1 data point from N(10,6^2) and avg of 9 data points
+    """
+    rng = np.random.default_rng()
+
+    data_1 = rng.normal(10, 6, ntrials)
+    data_2 = rng.normal(10, 6, (ntrials, 9)).sum(axis=1) / 9
+    range = (min(data_1.min(), data_2.min()), max(data_1.max(), data_2.max()))
+
+    fig, axs = plt.subplots(1, 2)
+
+    axs[0].hist(data_1, range=range, bins=36, density=True)
+    axs[1].hist(data_2, range=range, bins=36, density=True)
+    fig.tight_layout()
+
+    print("Standard deviations of data1, data2 are:\n", data_1.std(), data_2.std())
+
+
+def w8_s6_q1a():
+    print('Cauchy distribution formula:')
+    print('f(x; theta, gamma) = 1/pi * (gamma / ((x - theta)^2 + gamma^2))')
+    print('f(x; theta, gamma) = 1/pi * (1 / ((x - theta)^2 + 1))')
+
+
+def w8_s6_q1b(
+        mu: float = 0,
+        sigma: float = 1
+    ):
+    """Compares Normal pdf to Cauchy pdf"""
+    x = np.linspace(-4.5, 4.5, 1001)
+    normal = 1 / (sigma * (2 * np.pi) ** 0.5) * np.e ** (-(x - mu) ** 2 / (2 * sigma ** 2))
+    cauchy = 1 / np.pi * (sigma / ((x - mu) ** 2 + sigma ** 2))
+
+    plt.plot(x, normal, color='tab:orange')
+    plt.plot(x, cauchy, color='blue')
+    plt.title('PDF of Normal (orange) and Cauchy (blue) distributions')
+
+
+def w8_s6_q1c():
+    print("We say Cauchy dist have fat tails because Cauchy's pdf on the far left/right are higher")
+
+
+def w8_s6_q1d(
+        x0: float = 0,
+        scale: float = 1,
+        ntrials: int = 10_000,
+        minmax: float = 10
+    ):
+    x = np.linspace(-10, 10, 1001)
+    cauchy1 = 1 / np.pi * (scale / ((x - x0) ** 2 + scale ** 2))
+
+    min_x = x0 - minmax * scale
+    max_x = x0 + minmax * scale
+    
+    rng = np.random.default_rng()
+    data1 = rng.standard_cauchy(ntrials) * scale + x0
+    data1 = data1[(data1 > min_x) & (data1 < max_x)]
+    data2 = (rng.standard_cauchy((ntrials, 9)) * scale + x0).sum(axis=1) / 9
+    data2 = data2[(data2 > min_x) & (data2 < max_x)]
+
+    fig, ax = plt.subplots(1, 2)
+    ax[0].plot(x, cauchy1)
+    ax[0].hist(data1, density=True, bins=36)
+    ax[1].plot(x, cauchy1)
+    ax[1].hist(data2, density=True, bins=36)
+    fig.tight_layout()
+
+    print('Averaging the data does NOT change the spread of the histogram!!')
+
+
+def w8_s6_q2data() -> list:
+    return [-0.491220417425751, -7.29807825846222,  0.445026391301098, 
+            -2.01399156118547,  -3.31926706437694,  -2.09199513293618, 
+            -0.66458098096206,  -34.5102687569877,  -0.0679571835900508, 
+            8.08881636741333,   15.5319265619357,   25.3777623364045, 
+            0.720533188131477,  -1.31825660397482,  -1.40917663604347]
+
+
+def w8_s6_q2a():
+    data = w8_s6_q2data()
+    plt.scatter(np.arange(1, 16), data)
+
+
+def w8_s6_q2b(
+        theta_min: float = -10,
+        theta_max: float = 10,
+        dtheta: float = 0.02,
+        scale: float = 1
+    ):
+    data = w8_s6_q2data()
+
+    # Discretize priors by getting midpoint of each range
+    theta = np.arange(theta_min + dtheta / 2, theta_max, dtheta)
+    probabilities = np.zeros(shape=(len(data) + 1, theta.size))
+    probabilities[0] = 1 / theta.size
+
+    for i, dpoint in enumerate(data):
+        # Calculate likelihood -> in this case just need density, no need actual probability
+        # This is because calculating prob like area of trapezium is just scaling
+        # Scaling will cancel out -> this is the likelihood principal
+        # Basically, likelihood that are proportional will result in the same posterior
+        likelihoods = 1 / np.pi * (scale / ((dpoint - theta) ** 2 + scale ** 2))
+        bayesian_numerators = probabilities[i] * likelihoods
+        probabilities[i + 1] = bayesian_numerators / bayesian_numerators.sum()
+
+    from matplotlib.colors import LinearSegmentedColormap
+    color_start = 'lightblue'
+    color_end = 'navy'
+    cmap = LinearSegmentedColormap.from_list("my_gradient", [color_start, color_end])
+    fig, ax = plt.subplots(3, 1, figsize=(6, 6))
+    for i, prob in enumerate(probabilities):
+        ax[0].plot(theta, prob, color=cmap(i / (probabilities.shape[0] - 1)))
+    
+    MAP_estimate = theta[probabilities.argmax(axis=1)]
+    ax[1].plot(np.arange(probabilities.shape[0]), MAP_estimate)
+
+    ax[2].plot(theta, probabilities[-1])
+    ax[2].axvline(x=MAP_estimate[-1], color='red', linestyle='--')
+    
+    fig.tight_layout()
+
+    print(f'Look for the obscure path at location: {MAP_estimate[-1]:.3f}')
+
+
+
 #%%
 if __name__ == '__main__':
     main()
