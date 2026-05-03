@@ -9,6 +9,8 @@ import scipy.stats as scistat
 from collections.abc import Iterable
 from collections import Counter
 
+from typing import Literal
+
 from time import perf_counter
 
 def main() -> None:
@@ -1361,7 +1363,68 @@ def w8_s6_q2b(
     print(f'Look for the obscure path at location: {MAP_estimate[-1]:.3f}')
 
 
+def w9_lec16_bq1b(
+        prior_type: Literal['flat', 'informed'] = 'informed'
+    ):
+    if prior_type == 'informed':
+        prior = [
+            [7, 7, 7, 49],
+            [1, 1, 1,  7],
+            [1, 1, 1,  7],
+            [1, 1, 1,  7],
+        ]
+    elif prior_type == 'flat':
+        prior = [
+            [1, 1, 1,  1],
+            [1, 1, 1,  1],
+            [1, 1, 1,  1],
+            [1, 1, 1,  1],
+        ]
 
+    prior = np.array(prior)
+    prior = prior / prior.sum()
+
+    return prior
+
+def w9_lec16_bq1c():
+    def likelihood(e, c):
+        return 29 * e ** 28 * (1 - e) * 210 * c ** 6 * (1 - c) ** 4
+    p = np.arange(1,9,2) / 8
+    likelihoods = np.array([likelihood(e, c) for c in p 
+                                             for e in p]).reshape((4,4))
+    # print(likelihoods.sum())
+    # likelihoods /= likelihoods.sum()
+    # print(likelihoods)
+    likelihoods_df = pd.DataFrame(likelihoods, columns=p, index=p)
+    # print(likelihoods_df)
+    return likelihoods
+
+
+def w9_lec16_bq1d(
+        prior_type: Literal['flat', 'informed']
+        ):
+    prior = w9_lec16_bq1b(prior_type)
+    likelihoods = w9_lec16_bq1c()
+
+    posterior = prior * likelihoods
+    posterior /= posterior.sum()
+
+    p = np.arange(1,9,2) / 8
+    p = p.astype(str)
+    posterior = pd.DataFrame(posterior, columns='E_' + p, index='C_' + p)
+
+    s = posterior.stack().sort_values(ascending=False)
+    top1_idx = s.index[0]
+    top2_idx = s.index[1]
+
+    print(f'Most likely parameter is {top1_idx} with {s[top1_idx]:.1%}')
+    print(f'2nd most likely parameter is {top2_idx} with {s[top2_idx]:.1%}')
+    print(f'Total probability where E is more effective than C is ' +
+          f'{np.triu(posterior, k=1).sum():.1%}')
+    print(f'Probability that E - C >= 0.6 is {np.triu(posterior, k=3).sum():.3%}')
+
+    return posterior
+    
 #%%
 if __name__ == '__main__':
     main()
