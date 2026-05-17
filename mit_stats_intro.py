@@ -1425,6 +1425,168 @@ def w9_lec16_bq1d(
 
     return posterior
     
+
+def w9_s7_q1(
+        theta_HA: float = 0.7, 
+        alpha: float = 0.05, 
+        n_tosses: int = 18,
+        print_results: bool = True,
+        return_reject: bool = False
+        ):
+    """
+    H0 is that the coin is fair
+    theta_HA: P(head) for an unfair coin, to keep it simple, theta_HA must be >0.5
+    alpha: significance level
+    n_tosses: the number of coin tossed in 1 trial
+
+    test stat is # of heads
+    """
+    if theta_HA <= 0.5:
+        raise ValueError('theta_HA must be > 0.5')
+    
+    reject_region = []
+    actual_alpha = 0
+    power = 0
+
+    for i in range(n_tosses, -1, -1):
+        h0_p = scistat.binom.pmf(i, n_tosses, 0.5)
+        ha_p = scistat.binom.pmf(i, n_tosses, theta_HA)
+
+        if actual_alpha + h0_p < alpha:
+            actual_alpha += h0_p
+            power += ha_p
+            reject_region.append(i)
+        else:
+            break
+    
+    if print_results:
+        print(f"Reject region: {sorted(reject_region)}")
+        print(f"Actual significance: {actual_alpha:.7f}")
+        print(f"Power: {power:.7f}")
+
+    if return_reject:
+        return min(reject_region), actual_alpha, power
+
+
+def w9_s7_q2(
+        theta_HA: float = 0.7, 
+        alpha: float = 0.05, 
+        n_tosses: int = 18,
+        n_trials: int = 1000,
+        secret_prior: float = 0.3,
+    ):
+    """
+    H0 is that the coin is fair
+    theta_HA: P(head) for an unfair coin, to keep it simple, theta_HA must be >0.5
+    alpha: significance level
+    n_tosses: the number of coin tossed in 1 trial
+    n_trials: # of trials to run in the simulation
+    secret_prior: P(H0) used to choose whether H0 or HAis used for each trial
+
+    test stat is # of heads
+    """
+    print('#' * 45)
+    min_reject, significance, power = w9_s7_q1(theta_HA, alpha, n_tosses, return_reject=True)
+    print('#' * 45)
+
+    rng = np.random.default_rng()
+    coin_choice = rng.random(size=n_trials)[:, np.newaxis] < secret_prior # select H0 or HA
+    num_H0 = (coin_choice * 1).sum()
+    num_HA = n_trials - num_H0
+    coin_choice = np.where(coin_choice, 0.5, theta_HA) # each trial get the P(heads)
+    
+    tosses = rng.random(size=(n_trials, n_tosses))
+
+    heads = tosses < coin_choice
+    head_count = heads.sum(axis=1)[:, np.newaxis]
+
+    rejected = head_count >= min_reject
+    outcome_vector = coin_choice + rejected
+
+    num_rejected = rejected.sum()
+    num_nonRejected = n_trials - num_rejected
+    num_t1_error = (outcome_vector == 1.5).sum()
+    num_t2_error = (outcome_vector == theta_HA).sum()
+
+    if num_H0 != 0:
+        p_rej_given_H0 = num_t1_error / num_H0
+    else:
+        p_rej_given_H0 = '0, no H0 for prob'
+
+    p_H0_given_rej = num_t1_error / num_rejected
+
+    if num_HA != 0:
+        p_rej_given_HA = (num_HA - num_t2_error) / num_HA # this is the actual Power
+    else:
+        p_rej_given_HA = '0, no HA for prob'
+
+    p_HA_given_rej = 1 - p_H0_given_rej
+    p_rej = num_rejected / n_trials
+
+    print(f'Alt coin P(heads)={theta_HA}, alpha={alpha}')
+    print(f'n_tosses={n_tosses}, n_trials={n_trials}')
+    print(f'Secret prior: P(H0)={secret_prior}, P(HA)={1 - secret_prior}')
+    print(f'Number of rejections:  {num_rejected}')
+    print(f'Number of type 1:  {num_t1_error}')
+    print(f'Number of type 2:  {num_t2_error}')
+    print(f'P(rejection | H0):  {p_rej_given_H0}')
+    print(f'P(H0 | rejection):  {p_H0_given_rej:.7f}')
+    print(f'P(rejection | HA):  {p_rej_given_HA}')
+    print(f'P(HA | rejection):  {p_HA_given_rej:.7f}')
+    print(f'P(rejection):  {p_rej:.7f}')
+
+    return significance, power
+
+
+def w9_s7_q3a():
+    w9_s7_q2(n_trials=10_000, secret_prior=1)
+    print('#' * 45)
+    print('P(rejection | H0) will always be around the significance level (this is the definition)')
+    print('P(H0 | rejection) is 1 here, since there are no HA ever, it has no meaning')
+    print('P(HA | rejection) is 0, compliment of the above, sinec HA is never true')
+    print('P(rejection | HA) is undefined, as no HA to contingent on')
+
+
+def w9_s7_q3b():
+    w9_s7_q2(n_trials=10_000, secret_prior=0)
+    print('#' * 45)
+    print('P(rejection | H0) is undefined, as no H0 to contingent on')
+    print('P(H0 | rejection) is 0 here, since there are no H0 ever, it has no meaning')
+    print('P(HA | rejection) is 1, compliment of the above, sinec HA is always true')
+    print('P(rejection | HA) is the power, and will always be around the theoretical power')
+
+
+def w9_s7_q3c():
+    print('P(H0 | rejection) is basically the posterior probability, while it can depend on ' +
+          'the likelihood P(rejection | H0) which is the significance, it is equally influenced ' +
+          'by the prior probability and can vary from 0 to 1. For frequentists, ' +
+          'this is meaningless.')
+    
+
+def w9_s7_q3d():
+    print('THE SIGNIFICANCE IS NOT THE PROBABILITY OF AN ERROR GIVEN REJECTION')
+    print("It is the probability of rejection given H0.")
+    print("Frequentists don't compute P(Error|rejection)")
+
+
+def w9_s7_q4(
+        theta_HA: float = 0.7, 
+        alpha: float = 0.05, 
+        n_tosses: int = 18,
+        n_trials: int = 1000,
+        secret_prior: float = 0.3,
+    ):
+    significance, power = w9_s7_q2(theta_HA, alpha, n_tosses, n_trials, secret_prior)
+    print('#' * 45)
+
+    p_reject = significance * secret_prior + power * (1 - secret_prior)
+    theo_p_H0_given_rej = significance * secret_prior / p_reject
+    theo_p_HA_given_rej = power * (1 - secret_prior) / p_reject
+
+    print(f'Theoretical P(H0 | rejection), the posterior of H0, is: {theo_p_H0_given_rej:.7f}')
+    print(f'Theoretical P(HA | rejection), the posterior of H0, is: {theo_p_HA_given_rej:.7f}')
+
+    
 #%%
 if __name__ == '__main__':
     main()
