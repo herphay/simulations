@@ -9,6 +9,8 @@ import scipy.stats as scistat
 from collections.abc import Iterable
 from collections import Counter
 
+from typing import Literal
+
 from time import perf_counter
 
 def main() -> None:
@@ -1232,6 +1234,357 @@ def w7_s5_q2a(
 
     if return_data:
         return posteriors
+
+    
+def w8_s6_q0(
+        ntrials: int = 10_000
+    ):
+    """
+    Histogram of 1 data point from N(10,6^2) and avg of 9 data points
+    """
+    rng = np.random.default_rng()
+
+    data_1 = rng.normal(10, 6, ntrials)
+    data_2 = rng.normal(10, 6, (ntrials, 9)).sum(axis=1) / 9
+    range = (min(data_1.min(), data_2.min()), max(data_1.max(), data_2.max()))
+
+    fig, axs = plt.subplots(1, 2)
+
+    axs[0].hist(data_1, range=range, bins=36, density=True)
+    axs[1].hist(data_2, range=range, bins=36, density=True)
+    fig.tight_layout()
+
+    print("Standard deviations of data1, data2 are:\n", data_1.std(), data_2.std())
+
+
+def w8_s6_q1a():
+    print('Cauchy distribution formula:')
+    print('f(x; theta, gamma) = 1/pi * (gamma / ((x - theta)^2 + gamma^2))')
+    print('f(x; theta, gamma) = 1/pi * (1 / ((x - theta)^2 + 1))')
+
+
+def w8_s6_q1b(
+        mu: float = 0,
+        sigma: float = 1
+    ):
+    """Compares Normal pdf to Cauchy pdf"""
+    x = np.linspace(-4.5, 4.5, 1001)
+    normal = 1 / (sigma * (2 * np.pi) ** 0.5) * np.e ** (-(x - mu) ** 2 / (2 * sigma ** 2))
+    cauchy = 1 / np.pi * (sigma / ((x - mu) ** 2 + sigma ** 2))
+
+    plt.plot(x, normal, color='tab:orange')
+    plt.plot(x, cauchy, color='blue')
+    plt.title('PDF of Normal (orange) and Cauchy (blue) distributions')
+
+
+def w8_s6_q1c():
+    print("We say Cauchy dist have fat tails because Cauchy's pdf on the far left/right are higher")
+
+
+def w8_s6_q1d(
+        x0: float = 0,
+        scale: float = 1,
+        ntrials: int = 10_000,
+        minmax: float = 10
+    ):
+    x = np.linspace(-10, 10, 1001)
+    cauchy1 = 1 / np.pi * (scale / ((x - x0) ** 2 + scale ** 2))
+
+    min_x = x0 - minmax * scale
+    max_x = x0 + minmax * scale
+    
+    rng = np.random.default_rng()
+    data1 = rng.standard_cauchy(ntrials) * scale + x0
+    data1 = data1[(data1 > min_x) & (data1 < max_x)]
+    data2 = (rng.standard_cauchy((ntrials, 9)) * scale + x0).sum(axis=1) / 9
+    data2 = data2[(data2 > min_x) & (data2 < max_x)]
+
+    fig, ax = plt.subplots(1, 2)
+    ax[0].plot(x, cauchy1)
+    ax[0].hist(data1, density=True, bins=36)
+    ax[1].plot(x, cauchy1)
+    ax[1].hist(data2, density=True, bins=36)
+    fig.tight_layout()
+
+    print('Averaging the data does NOT change the spread of the histogram!!')
+
+
+def w8_s6_q2data() -> list:
+    return [-0.491220417425751, -7.29807825846222,  0.445026391301098, 
+            -2.01399156118547,  -3.31926706437694,  -2.09199513293618, 
+            -0.66458098096206,  -34.5102687569877,  -0.0679571835900508, 
+            8.08881636741333,   15.5319265619357,   25.3777623364045, 
+            0.720533188131477,  -1.31825660397482,  -1.40917663604347]
+
+
+def w8_s6_q2a():
+    data = w8_s6_q2data()
+    plt.scatter(np.arange(1, 16), data)
+
+
+def w8_s6_q2b(
+        theta_min: float = -10,
+        theta_max: float = 10,
+        dtheta: float = 0.02,
+        scale: float = 1
+    ):
+    data = w8_s6_q2data()
+
+    # Discretize priors by getting midpoint of each range
+    theta = np.arange(theta_min + dtheta / 2, theta_max, dtheta)
+    probabilities = np.zeros(shape=(len(data) + 1, theta.size))
+    probabilities[0] = 1 / theta.size
+
+    for i, dpoint in enumerate(data):
+        # Calculate likelihood -> in this case just need density, no need actual probability
+        # This is because calculating prob like area of trapezium is just scaling
+        # Scaling will cancel out -> this is the likelihood principal
+        # Basically, likelihood that are proportional will result in the same posterior
+        likelihoods = 1 / np.pi * (scale / ((dpoint - theta) ** 2 + scale ** 2))
+        bayesian_numerators = probabilities[i] * likelihoods
+        probabilities[i + 1] = bayesian_numerators / bayesian_numerators.sum()
+
+    from matplotlib.colors import LinearSegmentedColormap
+    color_start = 'lightblue'
+    color_end = 'navy'
+    cmap = LinearSegmentedColormap.from_list("my_gradient", [color_start, color_end])
+    fig, ax = plt.subplots(3, 1, figsize=(6, 6))
+    for i, prob in enumerate(probabilities):
+        ax[0].plot(theta, prob, color=cmap(i / (probabilities.shape[0] - 1)))
+    
+    MAP_estimate = theta[probabilities.argmax(axis=1)]
+    ax[1].plot(np.arange(probabilities.shape[0]), MAP_estimate)
+
+    ax[2].plot(theta, probabilities[-1])
+    ax[2].axvline(x=MAP_estimate[-1], color='red', linestyle='--')
+    
+    fig.tight_layout()
+
+    print(f'Look for the obscure path at location: {MAP_estimate[-1]:.3f}')
+
+
+def w9_lec16_bq1b(
+        prior_type: Literal['flat', 'informed'] = 'informed'
+    ):
+    if prior_type == 'informed':
+        prior = [
+            [7, 7, 7, 49],
+            [1, 1, 1,  7],
+            [1, 1, 1,  7],
+            [1, 1, 1,  7],
+        ]
+    elif prior_type == 'flat':
+        prior = [
+            [1, 1, 1,  1],
+            [1, 1, 1,  1],
+            [1, 1, 1,  1],
+            [1, 1, 1,  1],
+        ]
+
+    prior = np.array(prior)
+    prior = prior / prior.sum()
+
+    return prior
+
+def w9_lec16_bq1c():
+    def likelihood(e, c):
+        return 29 * e ** 28 * (1 - e) * 210 * c ** 6 * (1 - c) ** 4
+    p = np.arange(1,9,2) / 8
+    likelihoods = np.array([likelihood(e, c) for c in p 
+                                             for e in p]).reshape((4,4))
+    # print(likelihoods.sum())
+    # likelihoods /= likelihoods.sum()
+    # print(likelihoods)
+    likelihoods_df = pd.DataFrame(likelihoods, columns=p, index=p)
+    # print(likelihoods_df)
+    return likelihoods
+
+
+def w9_lec16_bq1d(
+        prior_type: Literal['flat', 'informed']
+        ):
+    prior = w9_lec16_bq1b(prior_type)
+    likelihoods = w9_lec16_bq1c()
+
+    posterior = prior * likelihoods
+    posterior /= posterior.sum()
+
+    p = np.arange(1,9,2) / 8
+    p = p.astype(str)
+    posterior = pd.DataFrame(posterior, columns='E_' + p, index='C_' + p)
+
+    s = posterior.stack().sort_values(ascending=False)
+    top1_idx = s.index[0]
+    top2_idx = s.index[1]
+
+    print(f'Most likely parameter is {top1_idx} with {s[top1_idx]:.1%}')
+    print(f'2nd most likely parameter is {top2_idx} with {s[top2_idx]:.1%}')
+    print(f'Total probability where E is more effective than C is ' +
+          f'{np.triu(posterior, k=1).sum():.1%}')
+    print(f'Probability that E - C >= 0.6 is {np.triu(posterior, k=3).sum():.3%}')
+
+    return posterior
+    
+
+def w9_s7_q1(
+        theta_HA: float = 0.7, 
+        alpha: float = 0.05, 
+        n_tosses: int = 18,
+        print_results: bool = True,
+        return_reject: bool = False
+        ):
+    """
+    H0 is that the coin is fair
+    theta_HA: P(head) for an unfair coin, to keep it simple, theta_HA must be >0.5
+    alpha: significance level
+    n_tosses: the number of coin tossed in 1 trial
+
+    test stat is # of heads
+    """
+    if theta_HA <= 0.5:
+        raise ValueError('theta_HA must be > 0.5')
+    
+    reject_region = []
+    actual_alpha = 0
+    power = 0
+
+    for i in range(n_tosses, -1, -1):
+        h0_p = scistat.binom.pmf(i, n_tosses, 0.5)
+        ha_p = scistat.binom.pmf(i, n_tosses, theta_HA)
+
+        if actual_alpha + h0_p < alpha:
+            actual_alpha += h0_p
+            power += ha_p
+            reject_region.append(i)
+        else:
+            break
+    
+    if print_results:
+        print(f"Reject region: {sorted(reject_region)}")
+        print(f"Actual significance: {actual_alpha:.7f}")
+        print(f"Power: {power:.7f}")
+
+    if return_reject:
+        return min(reject_region), actual_alpha, power
+
+
+def w9_s7_q2(
+        theta_HA: float = 0.7, 
+        alpha: float = 0.05, 
+        n_tosses: int = 18,
+        n_trials: int = 1000,
+        secret_prior: float = 0.3,
+    ):
+    """
+    H0 is that the coin is fair
+    theta_HA: P(head) for an unfair coin, to keep it simple, theta_HA must be >0.5
+    alpha: significance level
+    n_tosses: the number of coin tossed in 1 trial
+    n_trials: # of trials to run in the simulation
+    secret_prior: P(H0) used to choose whether H0 or HAis used for each trial
+
+    test stat is # of heads
+    """
+    print('#' * 45)
+    min_reject, significance, power = w9_s7_q1(theta_HA, alpha, n_tosses, return_reject=True)
+    print('#' * 45)
+
+    rng = np.random.default_rng()
+    coin_choice = rng.random(size=n_trials)[:, np.newaxis] < secret_prior # select H0 or HA
+    num_H0 = (coin_choice * 1).sum()
+    num_HA = n_trials - num_H0
+    coin_choice = np.where(coin_choice, 0.5, theta_HA) # each trial get the P(heads)
+    
+    tosses = rng.random(size=(n_trials, n_tosses))
+
+    heads = tosses < coin_choice
+    head_count = heads.sum(axis=1)[:, np.newaxis]
+
+    rejected = head_count >= min_reject
+    outcome_vector = coin_choice + rejected
+
+    num_rejected = rejected.sum()
+    num_nonRejected = n_trials - num_rejected
+    num_t1_error = (outcome_vector == 1.5).sum()
+    num_t2_error = (outcome_vector == theta_HA).sum()
+
+    if num_H0 != 0:
+        p_rej_given_H0 = num_t1_error / num_H0
+    else:
+        p_rej_given_H0 = '0, no H0 for prob'
+
+    p_H0_given_rej = num_t1_error / num_rejected
+
+    if num_HA != 0:
+        p_rej_given_HA = (num_HA - num_t2_error) / num_HA # this is the actual Power
+    else:
+        p_rej_given_HA = '0, no HA for prob'
+
+    p_HA_given_rej = 1 - p_H0_given_rej
+    p_rej = num_rejected / n_trials
+
+    print(f'Alt coin P(heads)={theta_HA}, alpha={alpha}')
+    print(f'n_tosses={n_tosses}, n_trials={n_trials}')
+    print(f'Secret prior: P(H0)={secret_prior}, P(HA)={1 - secret_prior}')
+    print(f'Number of rejections:  {num_rejected}')
+    print(f'Number of type 1:  {num_t1_error}')
+    print(f'Number of type 2:  {num_t2_error}')
+    print(f'P(rejection | H0):  {p_rej_given_H0}')
+    print(f'P(H0 | rejection):  {p_H0_given_rej:.7f}')
+    print(f'P(rejection | HA):  {p_rej_given_HA}')
+    print(f'P(HA | rejection):  {p_HA_given_rej:.7f}')
+    print(f'P(rejection):  {p_rej:.7f}')
+
+    return significance, power
+
+
+def w9_s7_q3a():
+    w9_s7_q2(n_trials=10_000, secret_prior=1)
+    print('#' * 45)
+    print('P(rejection | H0) will always be around the significance level (this is the definition)')
+    print('P(H0 | rejection) is 1 here, since there are no HA ever, it has no meaning')
+    print('P(HA | rejection) is 0, compliment of the above, sinec HA is never true')
+    print('P(rejection | HA) is undefined, as no HA to contingent on')
+
+
+def w9_s7_q3b():
+    w9_s7_q2(n_trials=10_000, secret_prior=0)
+    print('#' * 45)
+    print('P(rejection | H0) is undefined, as no H0 to contingent on')
+    print('P(H0 | rejection) is 0 here, since there are no H0 ever, it has no meaning')
+    print('P(HA | rejection) is 1, compliment of the above, sinec HA is always true')
+    print('P(rejection | HA) is the power, and will always be around the theoretical power')
+
+
+def w9_s7_q3c():
+    print('P(H0 | rejection) is basically the posterior probability, while it can depend on ' +
+          'the likelihood P(rejection | H0) which is the significance, it is equally influenced ' +
+          'by the prior probability and can vary from 0 to 1. For frequentists, ' +
+          'this is meaningless.')
+    
+
+def w9_s7_q3d():
+    print('THE SIGNIFICANCE IS NOT THE PROBABILITY OF AN ERROR GIVEN REJECTION')
+    print("It is the probability of rejection given H0.")
+    print("Frequentists don't compute P(Error|rejection)")
+
+
+def w9_s7_q4(
+        theta_HA: float = 0.7, 
+        alpha: float = 0.05, 
+        n_tosses: int = 18,
+        n_trials: int = 1000,
+        secret_prior: float = 0.3,
+    ):
+    significance, power = w9_s7_q2(theta_HA, alpha, n_tosses, n_trials, secret_prior)
+    print('#' * 45)
+
+    p_reject = significance * secret_prior + power * (1 - secret_prior)
+    theo_p_H0_given_rej = significance * secret_prior / p_reject
+    theo_p_HA_given_rej = power * (1 - secret_prior) / p_reject
+
+    print(f'Theoretical P(H0 | rejection), the posterior of H0, is: {theo_p_H0_given_rej:.7f}')
+    print(f'Theoretical P(HA | rejection), the posterior of H0, is: {theo_p_HA_given_rej:.7f}')
 
     
 #%%
