@@ -1586,7 +1586,46 @@ def w9_s7_q4(
     print(f'Theoretical P(H0 | rejection), the posterior of H0, is: {theo_p_H0_given_rej:.7f}')
     print(f'Theoretical P(HA | rejection), the posterior of H0, is: {theo_p_HA_given_rej:.7f}')
 
-    
+
+def w9_pset9_q1e(
+        H0: float = 0.5,
+        HA: float = 0.55,
+        alpha: float = 0.05,
+        power: float = 0.9,
+    ) -> int:
+    """
+    Check the exact number of tosses required to get a certain power for a coin with P(H) of either 
+    H0 or HA, and a significance level of alpha. 2 sided reject region.
+    """
+    # Find the normal estimtate first
+    n_est = (
+        (scistat.norm.ppf(1 - power) * (HA * (1 - HA)) ** 0.5 - 
+         scistat.norm.ppf(1 - alpha / 2) * (H0 * (1 - H0)) ** 0.5) / (H0 - HA)
+    ) ** 2
+
+    n_start = int(0.9 * n_est)
+    n_end = int(1.1 * n_est)
+
+    for n in range(n_start, n_end):
+        # # Find the left hand side critical value starting point, 0.95 from norm estimate
+        # n_crit_left = int(0.95 * scistat.norm.ppf(alpha / 2) * (n * H0 * (1  -H0)) ** 0.5)
+        # # Keep increasing crit value until we exceed the alpha (become unable to reject)
+        # while 2 * scistat.binom.cdf(n_crit_left, n, H0) < alpha:
+        #     n_crit_left += 1
+        
+        # # Get the critical values based on the alpha
+        # n_crit_left -= 1
+        # n_crit_right = n - n_crit_left
+        n_crit_left = int(scistat.binom.ppf(alpha / 2, n, H0)) - 1
+        n_crit_right = n - n_crit_left
+
+        # If the actual power based on the crit values exceed the requisite power, return the n
+        if (scistat.binom.cdf(n_crit_left, n, HA) + 
+            1 - scistat.binom.cdf(n_crit_right - 1, n, HA)) > power:
+            return n
+    # Return error if somehow not able to solve
+    return -1
+        
 #%%
 if __name__ == '__main__':
     main()
